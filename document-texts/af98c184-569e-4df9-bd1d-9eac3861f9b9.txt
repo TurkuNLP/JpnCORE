@@ -1,0 +1,151 @@
+SCGインビテーショナル：優勝はグリクシス巨像とヘイトベアーを使用したBrian Coval選手
+アメリカのTCGショップ「StarCityGames」が主催する完全招待制イベント・インビテーショナルがイリノイ州ロアノークにて開催されました（参加者数：547名）。優勝はスタンダードでグリクシスコロッサスを、モダンで白単ヘイトベアーを使用したBrian Coval選手となっています。
+トップ8選手＆スタンダード/モダン使用デッキ
+|1st Place||青黒赤コロッサス/白単ヘイトベアー|
+|2nd Place||白黒赤機体/青黒赤シャドウ|
+|3rd Place||青赤緑打撃体/エルドラージトロン|
+|4th Place||白青モニュメント/青黒赤シャドウ|
+|5th Place||青赤緑エネルギー/白黒緑|
+|6th Place||青赤緑エネルギー/エルドラージトロン|
+|7th Place||青赤緑コントロール/ランタンコントロール|
+|8th Place||黒緑エネルギー/バーン|
+プレイヤー：Brian Coval
+プレイヤー：Daniel Fournier
+プレイヤー：Michael Strianese
+プレイヤー：Todd Anderson
+プレイヤー：James Wohlmacher
+プレイヤー：Daniel Byington
+プレイヤー：Adrian Sullivan
+プレイヤー：Frank Skarren
+優勝者デッキリスト
+|スタンダード：グリクシスコロッサス プレイヤー：Brian Coval|
+|2:《島/Island》||4:《耕作者の荷馬車/Cultivator’s Caravan》|
+1:《山/Mountain》
+2:《沼/Swamp》
+4:《霊気拠点/Aether Hub》
+4:《ウギンの聖域/Sanctum of Ugin》
+4:《産業の塔/Spire of Industry》
+2:《尖塔断の運河/Spirebluff Canal》
+2:《発明博覧会/Inventors’ Fair》
+21 lands
+4:《金属製の巨像/Metalwork Colossus》
+1:《老いたる深海鬼/Elder Deep-Fiend》
+4:《光り物集めの鶴/Glint-Nest Crane》
+2:《艱苦の伝令/Herald of Anguish》
+11 creatures
+4:《面晶体の記録庫/Hedron Archive》
+3:《金属紡績工の組細工/Metalspinner’s Puzzleknot》
+4:《予言のプリズム/Prophetic Prism》
+4:《改革派の地図/Renegade Map》
+3:《致命的な一押し/Fatal Push》
+3:《コジレックの帰還/Kozilek’s Return》
+2:《領事の旗艦、スカイソブリン/Skysovereign, Consul Flagship》
+1:《橋上の戦い/Battle at the Bridge》
+28 other spells
+1:《歩行バリスタ/Walking Ballista》
+3:《作り変えるもの/Matter Reshaper》
+1:《世界を壊すもの/World Breaker》
+1:《儀礼的拒否/Ceremonious Rejection》
+1:《致命的な一押し/Fatal Push》
+3:《金属の叱責/Metallic Rebuke》
+2:《灯の再覚醒、オブ・ニクシリス/Ob Nixilis Reignited》
+2:《バラルの巧技/Baral’s Expertise》
+1:《没収/Dispossess》
+15 sideboard cards
+|モダン：白単ヘイトベアー プレイヤー：Brian Coval|
+|9:《平地/Plains》||4:《霊気の薬瓶/AEther Vial》|
+1:《魂の洞窟/Cavern of Souls》
+4:《幽霊街/Ghost Quarter》
+4:《地平線の梢/Horizon Canopy》
+4:《地盤の際/Tectonic Edge》
+1:《永岩城/Eiganjo Castle》
+23 lands
+1:《ファイレクシアの破棄者/Phyrexian Revoker》
+4:《刃の接合者/Blade Splicer》
+4:《ちらつき鬼火/Flickerwisp》
+4:《レオニンの裁き人/Leonin Arbiter》
+2:《ミラディンの十字軍/Mirran Crusader》
+4:《修復の天使/Restoration Angel》
+1:《セラの報復者/Serra Avenger》
+4:《スレイベンの検査官/Thraben Inspector》
+1:《雨ざらしの旅人/Weathered Wayfarer》
+4:《スレイベンの守護者、サリア/Thalia, Guardian of Thraben》
+29 creatures
+4:《流刑への道/Path to Exile》
+8 other spells
+1:《墓掘りの檻/Grafdigger’s Cage》
+4:《大祖始の遺産/Relic of Progenitus》
+2:《ブレンタンの炉の世話人/Burrenton Forge-Tender》
+1:《ミラディンの十字軍/Mirran Crusader》
+3:《石のような静寂/Stony Silence》
+2:《黄昏+払暁/Dusk+Dawn》
+2:《太陽の槍/Sunlance》
+15 sideboard cards
+ピックアップ
+|4位：白青モニュメント プレイヤー：Todd Anderson|
+|3:《島/Island》||2:《停滞の罠/Stasis Snare》|
+8:《平地/Plains》
+3:《灌漑農地/Irrigated Farmland》
+4:《港町/Port Town》
+4:《大草原の川/Prairie Stream》
+3:《ウェストヴェイルの修道院/Westvale Abbey》
+25 lands
+4:《往時の主教/Bygone Bishop》
+4:《雲先案内人/Cloudblazer》
+4:《ハンウィアーの民兵隊長/Hanweir Militia Captain》
+4:《無私の霊魂/Selfless Spirit》
+4:《呪文捕らえ/Spell Queller》
+4:《スレイベンの検査官/Thraben Inspector》
+24 creatures
+2:《金属の叱責/Metallic Rebuke》
+4:《オケチラの碑/Oketra’s Monument》
+3:《黄昏+払暁/Dusk+Dawn》
+11 other spells
+2:《賞罰の天使/Angel of Sanctions》
+1:《払拭/Dispel》
+3:《本質の散乱/Essence Scatter》
+1:《金属の叱責/Metallic Rebuke》
+3:《ゼンディカーの同盟者、ギデオン/Gideon, Ally of Zendikar》
+2:《石の宣告/Declaration in Stone》
+1:《黄昏+払暁/Dusk+Dawn》
+2:《断片化/Fragmentize》
+15 sideboard cards
+その他デッキリスト
+スタンダード：トップ8/7-1ライン以上
+モダン：トップ8/7-1ライン以上
+デーモン草
+金属製の巨像！金属製の巨像じゃないか！
+こう自分の使ってるデッキが勝ってるとなんか嬉しいよね。
+よく見る雨ざらしの旅人1の理由が未だに分からない…弱くはないと思うんだけど
+今のスタンダートほんと混沌としてて面白いな
+もう終わってしまうのがもったいない
+米3
+強くはないけど
+サクる土地12枚もあるし、アドは得れるやん
+今後巨像にはマナリスとかも入るのかな？
+やっぱ死の影環境だとミラクルつえーな
+稲妻も今は抜けてるし
+雨ざらしの旅人って平地じゃなくて土地サーチなのか！そりゃ強いわ
+※3じゃないけど今さら気づいた
+これだけ特殊地形が多いと
+もしあったらメインで発展の代価や基本に帰れとか入ってそう
+白青モニュメントMOで当たったけどなかなか嫌らしい。
+twitchに決勝の動画があるけどなかりの名勝負だよ。4本目にデスタク側がコジリタで生物流されてからの試合展開が熱すぎるから必見。
+ヘイトベアーバイアルあってもかなり重そうに見えるんだけどこれで回るんだな
+モニュメントってなんのモニュメント？
+オケチラの碑だよ。
+サリバン先生がコントロールフリークになってて草
+今のスタンはコジリタが強いみたいだね
+※3
+特定条件下で強いが腐りやすいから、強いけど枚数抑えてるだけだと思うよ
+自分でも使ったことあるからよくわかるが、レオニンの裁き人と固めびいたら目もあてられないし、２枚ひいたとしても２体で起動することのうまみが薄いからね
+逆にレオニンの裁き人維持していたとしてもマナに余裕のある後半戦に向けて１枚ひく分には十分強い
+難苦の伝令万歳
+メインのミラクル2枚がシャドウとBG系の多さを物語ってるね
+最近のウェスコーの緑白ヘイトベアはミラコー四積みだった気が。見直してはないんだけど。
+ミラクルはプロテクションがメタにかみ合ってるよね。純粋に好きなカードだし、活躍できる環境なのはいいこと。まあそれでもウェスコーのメイン4は吃驚したけど。
+なるほどなー…雨ざらしの旅人の解説ありがとうございます！
+自分も試してみようかな
+今のスタンダードって今までない数のセット跨いでるし、ウィザーズが予定してなかった組み合わせが生まれた反面作れるデッキの多様性も豊かなんだよな
+まぁ、組み合わせの偏りとは別のとこで禁止出てるのが残念だけどw
+米11で気になって見に行ったけど誰が見てもあの日の主人公は彼だねって言うくらい主人公ドロー連発しててわろた

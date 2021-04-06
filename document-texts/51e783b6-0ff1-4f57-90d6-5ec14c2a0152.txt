@@ -1,0 +1,37 @@
+連載目次
+Microsoft Azure標準の管理インタフェースとしては「Azureポータル」（https://portal.azure.com/）の他に、「Azure CLI 2.0」「Azure PowerShell」というコマンドライン管理環境があります。これらはクロスプラットフォームに対応しており、Windowsはもちろん、LinuxやmacOSでも利用可能です。
+また、本連載第42回で紹介したように、Azure CLI／Azure PowerShellは、ローカルコンピュータにインストールして使用する他、インストールなしでAzureポータルから素早く開始できる「Azure Cloud Shell」で利用することもできます。
+Azure CLI 2.0に対応したAzure Cloud ShellのBash環境は、2017年11月から一般提供が開始されています。もう一方のAzure PowerShell環境は、パブリックプレビューとして利用可能です。また、ローカルにインストールできるクロスプラットフォーム対応の「PowerShell Core 6.0（.NET Core 2.0）」は、2018年1月10日に一般提供が開始されており、現在は、LinuxとmacOSのローカル環境でもAzure PowerShellを正式利用できるようになっています。
+Azure CLI 2.0、Azure PowerShell、Azure Cloud Shellの公式ドキュメントもまた、更新および拡充されており、Windows、Linux、macOSのローカルへのインストール方法やAzure Cloud Shellの利用方法などについて詳しく説明されています。
+例えば、Azure Cloud Shellではコピー＆ペーストが利用できないと思っている人が多いと思いますが、Windowsから利用する場合は、［Ctrl］＋［C］キーによるテキストのコピーと［Ctrl］＋［Insert］キーによるテキストの貼り付けが可能です。筆者が確認した限り、Windows 10の「Internet Explorer（IE）」では［Ctrl］＋［C］キーによるコピーが機能しませんでしたが、「Microsoft Edge」ではコピー＆ペースト両方が問題なく機能しました（画面1）。
+Azureポータルではさまざまな作業を行えますが、Azureでできることの全てを制御できるわけではありません。一部の管理機能や詳細情報は、Azure CLIやAzure PowerShellだけに公開されている場合があります。以前のポータル（2018年1月8日に完全に廃止された「クラシックポータル」）にはあって、新しいAzureポータルでは利用できなくなったものもあります。
+例えば、「Marketplace」（クラシックポータルでは「ギャラリー」）で利用可能なWindowsおよびLinux仮想マシン（VM）用のイメージのバージョン（OSバージョンではなく、イメージの作成日）は、クラシックポータルでは確認や選択可能でしたが、新しいAzureポータルではできなくなり、常にVMイメージの最新バージョンが使用されるようになっています（画面2、画面3）。
+Azureにデプロイしてからの仮想マシンのOSやアプリケーションの更新は、利用者側の責任で行うことになります。デプロイ時のOSの更新レベルは、VMイメージの作成日で変わってきます。影響範囲によっては、未修正の問題を含む更新プログラムがインストール済みのVMイメージの使用は避けたいということもあるでしょう。しかし、現在のAzureポータルでは、VMイメージのバージョンを指定することはできません。
+Azure CLI 2.0やAzure PowerShellを使用すると、Marketplaceで利用可能なVMイメージのバージョン情報を取得できます。それには、以下のドキュメントで説明されている方法を利用します。
+例えば、西日本リージョンで利用可能な「［smalldisk］Windows Server 2016 Datacenter」のバージョン情報は、Azure Cloud ShellのAzure PowerShellで次のコマンドラインを実行することで取得できます（ローカルのAzure PowerShellの場合は、最初に「Connect-AzureRmAccount」が必要）（画面4）。
+$locname="japanwest" $pubname="MicrosoftWindowsServer" $offername="WindowsServer" $skuname="2016-Datacenter-smalldisk" Get-AzureRmVMImage -Location $locName -Publisher $pubName -Offer $offerName -Sku $skuName
+「Get-AzureRmVMImage」コマンドレットの「-Location」（場所）、「-Publisher」（VMイメージの発行元）、「-Offer」（VMイメージの提供の種類）、「-Sku」（VMイメージのSKU）の各オプションに指定できる選択肢は、次のコマンドラインでそれぞれ取得できます。
+Get-AzureRMLocation | Select Location Get-AzureRMVMImagePublisher -Location $locname | Select PublisherName Get-AzureRMVMImageOffer -Location $locname -Publisher $pubname | Select OfferGet-AzureRMVMImageSku -Location $locname -Publisher $pubname -Offer $offername | Select Skus
+2018年6月末時点でVMイメージ「［smalldisk］Windows Server 2016 Datacenter」には合計13のバージョンがあり、最新バージョンは作成日と思われる日付情報を含む「2016.127.20180510」です。これは、AzureポータルでVMイメージから新規にデプロイしたときに、この最新バージョンが使用されたことは容易に想像できます。
+Azure CLI 2.0の場合は、「az vm image list」コマンドで利用可能なVMイメージのバージョン情報を取得できます。例えば、先ほどのAzure PowerShellと同じ情報を取得するには、次のようなコマンドラインを実行します。
+az vm image list --all --location "japanwest" --publisher "MicrosoftWindowsServer" --offer "WindowsServer" --sku "2016-Datacenter-smalldisk"
+取得したバージョン情報は、Azure PowerShellやAzure CLI 2.0で仮想マシンを新規デプロイする際に指定できます。Azure PowerShellの場合は、「Set-AzureRmVMSourceImage」コマンドレットの「-Version」オプションにバージョンを指定できます。Azure CLI 2.0では「az vm create」コマンドの「--image」オプションに、 「az vm image list」コマンドで取得したVMイメージのURN値を指定できます。
+本連載第42回でも触れましたが、Azure Cloud Shellは「Dockerコンテナー」の技術を利用しています。Azure CLI 2.0は、Ubuntu Linuxベースの「Linuxコンテナー」にAzure CLI 2.0を組み込んだBash環境です。
+一方、Azure PowerShell環境を提供する現在のプレビュー版は、Windows Server 2016のServer Coreベースのコンテナで実現されています。両者を切り替えてみればすぐに分かりますが、LinuxベースのBashは数秒で開始し、WindowsベースのPowerShellは起動にしばらく時間がかかります。これは、Dockerコンテナーのサポートが初めて追加されたWindows Server 2016ではベースOSイメージが大きく、起動にも時間がかかるという制約があるためです。
+Windows Server Semi-Annual Channel（最新バージョンは1803）では、ベースOSイメージの縮小やパフォーマンスの改善が図られていますが、それでもLinuxコンテナーのサイズの小ささや起動の速さにはかないません。
+Microsoftは、Azure Cloud Shellでは「Windowsコンテナー」ベースのAzure PowerShellの開発継続を止め、将来、Linuxベースに変更することを発表しました。前述したように、これはクロスプラットフォームのPowerShell Core 6.0の正式リリース（6.0.x）によって実現可能になりました（画面5）。
+Azure PowerShellという同じ環境を提供できるのであれば、より起動が早く、軽量なもので提供するということは理にかなっています。変更時期は明らかにされていませんが、現在のBashと同等の起動時間で利用可能になるはずです。
+なお、Azure PowerShellのモジュールの中には、まだPowerShell Core 6.0（.NET Core 2.0）への対応が完了していないものが残っており、現在、使用頻度の高いモジュールから優先的に作業が行われているそうです。
+岩手県花巻市在住。Microsoft MVP：Cloud and Datacenter Management（Oct 2008 - Sep 2016）。SIer、IT出版社、中堅企業のシステム管理者を経て、フリーのテクニカルライターに。Microsoft製品、テクノロジーを中心に、IT雑誌、Webサイトへの記事の寄稿、ドキュメント作成、事例取材などを手掛ける。個人ブログは『山市良のえぬなんとかわーるど』。
+Copyright © ITmedia, Inc. All Rights Reserved.
+転職／派遣情報を探す
+年収６００万円！エンジニア向けの求人満載。転職希望者必見
+若手エンジニアのキャリアや技術力向上に役立つ情報をお届け【@ITキャリア】
+＠IT
+@ITについて
+RSSについて
+アイティメディアIDについて
+メールマガジン登録
+＠ITのメールマガジンは、 もちろん、すべて無料です。ぜひメールマガジンをご購読ください。
+ITmediaはアイティメディア株式会社の登録商標です。
+メディア一覧 | 公式SNS | 広告案内 | お問い合わせ | プライバシーポリシー | RSS | 運営会社 | 採用情報

@@ -1,0 +1,1724 @@
+Apache HTTP サーバ バージョン 2.4
+翻訳済み言語: de | en | es | fr | ja | tr
+|説明:||常に使用可能な Apache HTTP サーバのコア機能|
+|ステータス:||Core|
+|説明:||プロトコルを Listen しているソケットの最適化を設定する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||2.1.5 以降|
+AcceptFilter protocol accept_filter
+Listen しているソケットに対して、OS が固有に持っているプロトコルについての最適化を 有効にするディレクティブです。大前提となる条件は、データが受信されるか HTTP リクエスト全体がバッファされるかするまで、カーネルがサーバプロセスに ソケットを送らないようになっている、ということです。現在サポートされているのは、 FreeBSD の Accept Filter と Linux のプリミティブな
+TCP_DEFER_ACCEPT のみです。
+FreeBSD のデフォルト値は :
+AcceptFilter http httpready
+AcceptFilter https dataready
+httpready Accept Filter は HTTP リクエスト全体を、 カーネルレベルでバッファリングします。リクエスト全体を受信し終わると、 その後サーバプロセスにそれを送ります。詳細については accf_http(9) を参照してください。HTTPS のリクエストは暗号化されているので accf_data(9) フィルタのみが使用されます。
+Linux でのデフォルト値は :
+AcceptFilter http data
+AcceptFilter https data
+Linux の
+TCP_DEFER_ACCEPT は HTTP リクエストのバッファリングを サポートしていません。
+none以外の値で
+TCP_DEFER_ACCEPTが有効になります。詳細については Linux man ページ tcp(7) を参照してください。
+引数に
+none を指定すると、プロトコルに対する全ての Accept Filter が無効になります。
+nntpといった、先にサーバにデータを 送る必要のあるプロトコルに有効です :
+AcceptFilter nntp none
+|説明:||後に続くパス名情報を受け付けるリソースの指定|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Apache 2.0.30 以降で使用可能|
+AcceptPathInfo On|Off|Default
+AcceptPathInfo Default
+このディレクティブは実際のファイル名 (もしくは存在するディレクトリの 存在しないファイル) の後に続くパス名情報があるリクエストを受け付けるか 拒否するかを制御します。続きのパス名情報はスクリプトには
+PATH_INFO 環境変数として利用可能になります。
+例えば、
+/test/ が、
+here.htmlというファイル 一つのみがあるディレクトリを指しているとします。そうすると、
+/test/here.html/moreと
+/test/nothere.html/moreへのリクエストは両方とも
+/moreを
+PATH_INFOとします。
+AcceptPathInfo ディレクティブに指定可能な 三つの引数は:
+Off
+/test/here.html/more のように、本当のファイル名の 後にパス名情報が続くリクエストには 404 NOT FOUND エラーが返ります。
+On
+/test/here.html/more は
+/test/here.html が有効なファイルにマップすれば 受け付けられます。
+Default
+PATH_INFO を拒否します。 cgi-script や isapi-handler のようにスクリプトを扱うハンドラは 一般的にデフォルトで
+PATH_INFO を受け付けます。
+AcceptPathInfo の主な目的はハンドラの
+PATH_INFOを 受け付けるか拒否するかの選択を上書きできるようにすることです。 例えば、これは例えば INCLUDES のような フィルタを使って
+PATH_INFOに 基づいてコンテンツを生成しているときに必要になります。 コアハンドラでは通常拒否されるので、そういったスクリプトを動作させるには 次のような設定を使います。
+<Files "mypaths.shtml">
+Options +Includes
+SetOutputFilter INCLUDES
+AcceptPathInfo On
+</Files>
+|説明:||分散設定ファイルの名前|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+AccessFileName filename [filename] ...
+AccessFileName .htaccess
+リクエストを処理するとき、サーバはディレクトリに 対して分散設定ファイルが有効になっていれば、 そのドキュメントへの パス上にある全てのディレクトリから、ここで指定された名前の一覧の中で 最初に見つかったファイルをそれぞれ設定ファイルとして読み込みます。例えば:
+AccessFileName .acl
+という設定があると、以下のようにして無効にされていない限り、 ドキュメント
+/usr/local/web/index.html を返す前に、サーバは
+/.acl,
+/usr/.acl,
+/usr/local/.acl,
+/usr/local/web/.aclから ディレクティブを読み込みます。
+<Directory />
+AllowOverride None
+</Directory>
+AllowOverride
+|説明:||レスポンスのコンテントタイプが|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+text/plain あるいは
+text/html の場合に追加するデフォルトの charset パラメータ
+AddDefaultCharset On|Off|charset
+AddDefaultCharset Off
+レスポンスのコンテントタイプが
+text/plain あるいは
+text/htmlの場合に限りますが、レスポンスに追加するメディアタイプの文字セットパラメータ (文字エンコーディングの名前) のデフォルト値を、このディレクティブで指定します。 これはレスポンス (訳注: レスポンスの HTML) 内で
+META要素で指定された、どのような文字セットも無効にしますが、 最終的な挙動はユーザのクライアント側の設定で決まります。 この機能は
+AddDefaultCharset Offという設定で無効になります。
+AddDefaultCharset Onにすれば、 Apache 内部のデフォルト文字セット
+iso-8859-1に設定されます。 その他 charset に指定できる値であれば、どんな値でも使えます。 指定する値は、MIME メディアタイプとして使われる IANA に登録されている文字セット名のうちの一つにすべきです。 例えば:
+AddDefaultCharset utf-8
+AddDefaultCharset を使うときは、全てのテキストリソースが 指定する文字エンコードになっていると分かっていて、かつ、 リソースの個々に文字セットを指定するのが大変な場合のみです。 例を挙げると、レガシーな CGI スクリプトなどの、動的に生成される コンテンツを含むリソースに文字セットパラメータを追加する場合で、 ユーザの入力データが出力に入り、クロスサイトスクリプティングが 引き起こされうる場合です。デフォルト文字セットをセットしたとしても、 ブラウザの "文字エンコードの自動選択" 機能が有効になっているユーザを 守ることにはならないので、もちろんより良い解決策は単にスクリプトを修正 (あるいは削除) することです。
+AddCharset
+|説明:||URL 中の符号化されたパス分離文字が先に伝えられるのを許可するかどうかを 決定する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Apache 2.0.46 以降で使用可能|
+AllowEncodedSlashes On|Off
+AllowEncodedSlashes Off
+AllowEncodedSlashes ディレクティブは符号化された パス分離文字 (
+%2F、さらにシステムによっては
+%5C) が存在する URL の使用を 許可するかどうかを決定します。通常はそのような URL は 404 (Not found) エラー で拒否されます。
+/ は
+\ に対応する
+AllowEncodedSlashes
+Onによる パス分離文字の使用は、
+PATH_INFOと合わせて 使うときに一番役に立ちます。
+符号化されたスラッシュを許可することは、復号をすることを 意味しません。
+%2F や (関係するシステムでの)
+%5Cは、他の部分が復号された URL の中でもそのままの形式で 残されます。
+AcceptPathInfo
+|説明:|
+|構文:|
+|デフォルト:|
+|コンテキスト:||ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+.htaccess で許可されるディレクティブの種類
+AllowOverride All|None|directive-type [directive-type] ...
+AllowOverride All
+サーバが (
+AccessFileName によって指定された)
+.htaccessファイルを見つけた時、そのファイルの中で 宣言されたどのディレクティブがより前に定義された設定ディレクティブを 上書きできるかを知る必要があります。
+AllowOverride は正規表現無しの
+<Directory> セクションでのみ有効で、
+<Location> や
+<DirectoryMatch> や
+<Files> セクションでは無効です。
+このディレクティブを
+None に設定すると、.htaccess ファイルは完全に 無視されます。 この場合、サーバはファイルシステムの
+.htaccessファイルを読むことを 試みさえしません。
+このディレクティブが
+All に設定されている時には、
+.htaccessという コンテキスト を持つ 全てのディレクティブが利用できます。
+directive-type には、以下のディレクティブ群の キーワードのどれかを指定します。
+AuthDBMGroupFile ,
+AuthDBMUserFile ,
+AuthGroupFile ,
+AuthName ,
+AuthType ,
+AuthUserFile ,
+Require など)。
+DefaultType ,
+ErrorDocument ,
+ForceType ,
+LanguagePriority ,
+SetHandler ,
+SetInputFilter ,
+SetOutputFilter ,
+mod_mime の Add* と Remove* ディレクティブなど), ドキュメントのメタデータ (
+Header ,
+RequestHeader ,
+SetEnvIf ,
+SetEnvIfNoCase ,
+BrowserMatch ,
+CookieExpires ,
+CookieDomain ,
+CookieStyle ,
+CookieTracking ,
+CookieName ),
+mod_rewrite のディレクティブ
+RewriteEngine ,
+RewriteOptions ,
+RewriteBase ,
+RewriteCond ,
+RewriteRule ) と
+mod_actions の
+Action ディレクティブ。
+AddDescription ,
+AddIcon ,
+AddIconByEncoding ,
+AddIconByType ,
+DefaultIcon ,
+DirectoryIndex ,
+FancyIndexing ,
+HeaderName ,
+IndexIgnore ,
+IndexOptions ,
+ReadmeName など)。
+Allow ,
+Deny ,
+Order ).
+Options と
+XBitHack )。
+Options で設定するオプション を、(空白を含めない) コンマ区切りのリストにして等号の後に続けることで 設定できます。
+例:
+AllowOverride AuthConfig Indexes
+上の例では
+AuthConfig と
+Indexesのどちらにも 属さないディレクティブはすべて内部サーバエラーを引き起こします。
+AccessFileName
+|説明:||Individual directives that are allowed in|
+|構文:|
+|デフォルト:|
+|コンテキスト:||ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+.htaccess files
+AllowOverrideList None|directive [directive-type] ...
+AllowOverrideList None
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+AccessFileName
+AllowOverride
+|説明:||CGI スクリプトのインタープリタの位置を調べるための手法|
+|構文:|
+|コンテキスト:||ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||NetWare のみ|
+CGIMapExtension cgi-path .extension
+このディレクティブは Apache が CGI スクリプトを実行するための インタープリタを探す方法を制御します。 例えば、
+CGIMapExtension sys:\foo.nlm .foo と設定すると
+.fooという拡張子のすべての CGI スクリプトは FOO インタープリタに 渡されます。
+|説明:||Enables passing HTTP authorization headers to scripts as CGI variables|
+|構文:|
+|デフォルト:|
+|コンテキスト:||ディレクトリ, .htaccess|
+|上書き:||AuthConfig|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.4.13 and later|
+CGIPassAuth On|Off
+CGIPassAuth Off
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Controls how some CGI variables are set|
+|構文:|
+|コンテキスト:||ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.4.21 and later|
+CGIVar variable rule
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||Options|
+|ステータス:||Core|
+|モジュール:||core|
+Content-MD5 HTTP 応答ヘッダの生成を有効にする
+ContentDigest On|Off
+ContentDigest Off
+このディレクティブは、RFC1864 及び RFC2616 において定義されている
+Content-MD5 ヘッダーの生成を有効にします。
+MD5 は、任意長のデータの「メッセージダイジェスト」(「指紋」 と表現されることもある) を計算するアルゴリズムで、 データの変更があった場合には非常に高い信頼度でメッセージダイジェストに変更が 反映されます。
+Content-MD5 ヘッダは、エンドツーエンドで エンティティボディーに含まれるメッセージの完全性チェック (Message Integrity Check - MIC)を提供します。 このヘッダを調べることで、プロキシやクライアントは、 途中経路におけるエンティティボディの予期せぬ変更などを 検出することができます。ヘッダの例:
+Content-MD5: AuLb7Dp1rqtRtxz2m9kRpA==
+リクエスト毎にメッセージダイジェストを計算する (値はキャッシュされません) ことから、 サーバパフォーマンスが低下することについて注意してください。
+Content-MD5 は、
+core機能により処理された ドキュメントを送るときのみ有効であり、 SSI ドキュメントや CGI スクリプトの出力、バイトレンジを指定した 応答の場合にはこのヘッダは付与されません。
+|説明:||Base directory for the server run-time files|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache 2.4.2 and later|
+DefaultRuntimeDir directory-path
+DefaultRuntimeDir DEFAULT_REL_RUNTIMEDIR (logs/)
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+ServerRoot
+|説明:||サーバがコンテントタイプを決定できないときに 送られる MIME コンテントタイプ|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||引数|
+DefaultType MIME-type|none
+DefaultType text/plain
+none は Apache 2.2.7 以降で利用可能
+サーバは、MIME タイプ のマップからは決定できないドキュメントの送信を要求されることがあります。
+サーバは、ドキュメントのコンテントタイプをクライアントに通知するべきです。 サーバで通常の方法ではこれが判定できない場合は、
+DefaultType で指定されたタイプを利用します。 例:
+DefaultType image/gif
+これは
+.gif という拡張子がファイル名に含まれていない 多くの GIF 画像が含まれているディレクトリに適しているでしょう。
+サーバでも管理者でも判定することができない (例えばプロクシの) 場合、 誤った情報を与えるよりは MIME タイプの指定がない状態が望ましいことも あります。この場合は次のようにします :
+DefaultType None
+DefaultType None は httpd-2.2.7 以降でのみ利用できます。
+ForceType ディレクティブと 違って、このディレクティブはデフォルトの MIME タイプを提供するだけで あることに注意してください。ファイル名の拡張子を含め、 メディアタイプを決定できる他の MIME タイプの定義があれば このデフォルトは上書きされます。
+|説明:||変数の存在を宣言する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+Define parameter-name
+httpd の
+-D引数と同じものです。
+このディレクティブを使うと、スタートアップスクリプトに 記載されている
+-D 引数を書き換える必要なく、
+<IfDefine>セクションを切り替えることができます。
+|説明:||指定のファイルシステムのディレクトリとサブディレクトリとのみに 適用されるディレクティブを囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+<Directory directory-path> ... </Directory>
+指定されたディレクトリとそのサブディレクトリにのみ ディレクティブを適用させるためには、
+<Directory> と
+</Directory>を対として、ディレクティブ群を囲います。 その中には、ディレクトリコンテキストで許可された全てのディレクティブを 利用できます。 directive-path は、フルパスもしくは Unix のシェル形式の ワイルドカードを指定します。
+/home/user/public_htmlには
+<Directory /*/public_html>はマッチしませんが、
+<Directory /home/*/public_html>はマッチします。 例:
+? は任意の 1 文字、
+* は任意の文字列にマッチします。 シェルにおける指定同様、文字の範囲を
+[] で指定できます。 ワイルドカードは `/' 文字にはマッチしませんので、
+<Directory /usr/local/httpd/htdocs>
+Options Indexes FollowSymLinks
+</Directory>
+directory-path 引数には注意してください: その引数は Apache がファイルをアクセスするために使うファイルシステムのパスに そのままマッチする必要があります。ある
+<Directory> に 適用されるディレクティブは、別のシンボリックリンクをたどったりして 同じディレクトリを違うパスでアクセスした場合には適用されません。
+~ という文字を 付加することで正規表現を利用することもできます。 例えば:
+<Directory ~ "^/www/.*/[0-9]{3}">
+といった指定の場合、
+/www/ 以下にある数字 3 文字のディレクトリにマッチします。
+もし複数の (正規表現以外の)
+<Directory> セクションが ドキュメントを含むディレクトリ (やその上位ディレクトリのどれか) とマッチしたならば、 .htaccess ファイルのディレクティブも読み込みつつ、 短いパスから順に適用されます。 例えば、
+<Directory />
+AllowOverride None
+</Directory>
+<Directory /home/>
+AllowOverride FileInfo
+</Directory>
+と設定し、ドキュメント
+/home/web/dir/doc.html への アクセスがあった場合には以下のように動作します:
+AllowOverride None が適用される。 (
+.htaccess ファイルは無効になる)
+AllowOverride FileInfo が適用される (
+/home ディレクトリに対して)。
+/home/.htaccess ,
+/home/web/.htaccess ,
+/home/web/dir/.htaccess の順にそれらのファイル中の FileInfo ディレクティブが適用される。
+正規表現は、通常のセクションがすべて適用されるまで 考慮されません。 その後、全ての正規表現が設定ファイルに現れた順で試されます。 例えば、以下のような場合に
+<Directory ~ abc$>
+# ... directives here ...
+</Directory>
+正規表現のセクションはすべての通常の
+<Directory> と
+.htaccessの適用が終わるまで考慮されません。 その後で、正規表現は
+/home/abc/public_html/abcにマッチし、 対応する
+<Directory>が適用されます。
+Apache のデフォルトでは
+<Directory /> へのアクセスは
+Allow from Allになっていることに注意してください。 これは、URL からマップされたどのファイルでも Apache は送るということです。 これは以下のようにして変更することが推奨されています。
+<Directory />
+Order Deny,Allow
+Deny from All
+</Directory>
+そしてアクセスを可能にしたいディレクトリに対して 個別に設定すればよいでしょう。 このあたりについては、セキュリティに関するコツを 参照してください。
+ディレクトリセクションは
+apache2.conf ファイルに書きます。
+<Directory>ディレクティブは入れ子にすることができず、
+<Limit>や
+<LimitExcept>セクションの中にも 記述できません。
+|説明:||正規表現にマッチするファイルシステムのディレクトリと サブディレクトリとのみに適用されるディレクティブを囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+<DirectoryMatch regex> ... </DirectoryMatch>
+<Directory> ディレクティブと同様に、
+<DirectoryMatch>と
+</DirectoryMatch>は指定されたディレクトリと そのサブディレクトリにのみ適用されるディレクティブ群を囲います。 しかし、このディレクティブは引数として正規表現をとります。例えば:
+<DirectoryMatch "^/www/(.+/)?[0-9]{3}">
+は
+/www/ 以下にある数字 3 文字のディレクトリにマッチします。
+<Directory> と正規表現の指定が 適用される順番については
+<Directory>
+|説明:||ウェブから見えるメインのドキュメントツリーになる ディレクトリ|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+DocumentRoot directory-path
+DocumentRoot /usr/local/apache/htdocs
+このディレクティブは、
+httpd がファイルを提供するディレクトリを設定します。
+Aliasのようなディレクティブにマッチしない場合には、 ドキュメントの (訳注:ファイルシステム上の) パスを生成するために、 リクエストされた URL のパス部分をドキュメントルートに付与します。 例:
+DocumentRoot /usr/web
+この場合、
+http://www.my.host.com/index.html へのアクセスがあれば
+/usr/web/index.htmlが返されます。 directory-path が絶対パスでない場合は、
+ServerRootからの相対パスとみなされます。
+DocumentRoot は最後のスラッシュ無しで 指定する必要があります。
+|説明:||Contains directives that apply only if the condition of a previous|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Nested conditions are evaluated in 2.4.26 and later|
+<If> or
+<ElseIf> section is not satisfied by a request at runtime
+<Else> ... </Else>
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+<If>
+<ElseIf>
+<If> ,
+<ElseIf> , and
+<Else> are applied last.
+|説明:||Contains directives that apply only if a condition is satisfied by a request at runtime while the condition of a previous|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Nested conditions are evaluated in 2.4.26 and later|
+<If> or
+<ElseIf> section is not satisfied
+<ElseIf expression> ... </ElseIf>
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+<If>
+<Else>
+<If> ,
+<ElseIf> , and
+<Else> are applied last.
+|説明:||配送中にファイルを読み込むためにメモリマッピングを 使うかどうか|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+EnableMMAP On|Off
+EnableMMAP On
+このディレクティブは配送中にファイルの内容を読み込む必要があるときに
+httpd がメモリマッピングを使うかどうかを制御します。 デフォルトでは、 例えば、
+mod_includeを使って SSI ファイルを配送 するときのように、ファイルの途中のデータをアクセスする必要があるときには Apache は OS がサポートしていればファイルをメモリにマップします。
+このメモリマップは性能の向上をもたらすことがあります。 しかし、環境によっては運用上の問題を防ぐためにメモリマッピングを 使用しないようにした方が良い場合もあります:
+httpd の性能が落ちるものがあります。
+DocumentRoot では、
+httpd がメモリマップしている間にファイルが削除されたり 短くなったりしたときに起こるセグメンテーションフォールトのために
+httpd がクラッシュする可能性があります。
+これらの問題に当てはまるサーバの設定の場合は、以下のようにして ファイルの配送時のメモリマッピングを使用不可にしてください:
+EnableMMAP Off
+NFS マウントされたファイルには、問題のあるファイルにのみ明示的に この機能を使用不可にします:
+<Directory "/path-to-nfs-files"> EnableMMAP Off </Directory>
+|説明:||ファイルのクライアントへの配送時にカーネルの sendfile サポートを 使うかどうか|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||バージョン 2.0.44 以降で使用可能|
+EnableSendfile On|Off
+EnableSendfile On
+このディレクティブはクライアントにファイルの内容を送るときに
+httpd がカーネルの sendfile サポートを使うかどうかを制御します。デフォルトでは、 例えば静的なファイルの配送のように、リクエストの処理にファイルの 途中のデータのアクセスを必要としないときには、Apache は OS が サポートしていればファイルを読み込むことなく sendfile を使って ファイルの内容を送ります。
+sendfile は read と send を別々に行なうことと、バッファの割り当てを 回避します。しかし、プラットフォームやファイルシステムの中には 運用上の問題を避けるためにこの機能を使用不可にした方が良い場合があります:
+DocumentRoot (例えば NFS や SMB) では、カーネルは自身のキャッシュを使ってネットワークからのファイルを 送ることができないことがあります。
+これらの問題に当てはまるサーバの設定の場合は、以下のようにして この機能を使用不可にしてください:
+EnableSendfile Off
+NFS や SMB マウントされたファイルには、問題のあるファイルにのみ明示的に この機能を使用不可にします:
+<Directory "/path-to-nfs-files"> EnableSendfile Off </Directory>
+|説明:||Abort configuration parsing with a custom error message|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||2.3.9 and later|
+Error message
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||エラーが発生したときにサーバがクライアントに送るもの|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+ErrorDocument error-code document
+問題やエラーが発生したときの動作として、 Apache には以下の四つのうち一つの動作を設定することができます。
+最初のものがデフォルトの動作で、2 番目から 4 番目は、
+ErrorDocument ディレクティブにより、 HTTP のレスポンスコードと、メッセージか URL を指定することで設定します。 Apache が問題もしくはエラーに関する追加情報を提供することがあります。
+URL の場合は、スラッシュで始まる (/) ローカルの web-path (
+DocumentRoot からの相対パス ) か、クライアントが解決できる完全な URL を指定します。 もしくは、ブラウザに表示されるメッセージを指定できます。 例:
+ErrorDocument 500 http://foo.example.com/cgi-bin/tester
+ErrorDocument 404 /cgi-bin/bad_urls.pl
+ErrorDocument 401 /subscription_info.html
+ErrorDocument 403 "Sorry can't allow you access today"
+加えて、特別な値
+default を使って Apache に ハードコードされている簡単なメッセージを指定することができます。 通常は必要ではありませんが、
+defaultを使うと 既存の
+ErrorDocumentディレクティブの設定を 継承するところで、Apache のハードコードされた簡単なメッセージに 戻すことができます。
+ErrorDocument 404 /cgi-bin/bad_urls.pl
+<Directory /web/docs>
+ErrorDocument 404 default
+</Directory>
+リモート URL (例えば、頭に
+http と付与した方法) を
+ErrorDocumentに指定するとき、 たとえ文書が同じサーバにあろうとも、ドキュメントがどこにあるかを通知するために、 Apache はリダイレクトをクライアントに送出するということに、注意してください。 これにはいろいろと関連して起こる問題があります。 中でも最も重要なのは、クライアントは元々のエラーステータスコードを受け取らず、 代わりにリダイレクトのステータスコードを受け取るということです。 これにより、ステータスコードを使って URL が有効であるかどうかを決定しようとする ウェブロボットやその他クライアントを、混乱させるかもしれません。 さらに、
+ErrorDocument 401にリモートの URL を指定すると、 クライアントは 401 というステータスコードを受け取らないため、 パスワードをユーザーに入力要求しなければならないことがわかりません。 従って、
+ErrorDocument 401というディレクティブを使う場合は、 必ずローカルな文書を参照しなければなりません。
+Microsoft Internet Explorer (MSIE) はデフォルトではサーバが生成したエラーメッセージが 「小さすぎる」ときには無視をして自分自身の「やさしい」エラーメッセージで 置換します。サイズのしきい値はエラーの種類によって異なりますが、 一般的にはエラーの文書を 512 バイトよりも大きくすると、MSIE は サーバが生成したエラーを隠さずに表示します。詳しい情報は Microsoft Knowledge Base の記事 Q294807 にあります。
+ほとんどのエラーメッセージを上書きすることができますが、特定の状況下では
+ErrorDocument の設定にかかわらず 内蔵のメッセージが使われます。 特に、不正な形式のリクエストが検出された場合、通常のリクエスト処理は 即座に中止され、内蔵のエラーメッセージが返されます。 この処置は不正なリクエストによって引き起こされる、セキュリティ問題から 守るために必要な措置です。
+2.0 より前のバージョンでは、対になっていない二重引用符を 先頭に付けることによりメッセージであることを指定していました。
+|説明:||サーバがエラーをログ収集する場所|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+ErrorLog file-path|syslog[:facility]
+ErrorLog logs/error_log (Unix) ErrorLog logs/error.log (Windows and OS/2)
+ErrorLog ディレクティブは、 サーバに生じたさまざまなエラーを 記録する為のファイルの名前を設定します。 file-path が絶対パスでないときは、
+ServerRootからの相対パスとみなされます。
+ErrorLog /var/log/httpd/error_log
+file-path がパイプ (|) から始まる場合は、 エラーログを処理するために実行されるコマンドが 指定されていると解釈されます。
+ErrorLog "|/usr/local/bin/httpd_errors"
+ファイル名の変わりに
+syslog と指定することによって、 システムがサポートしていれば syslogd(8) を利用したロギングが有効になります。 デフォルトでは、
+local7ファシリティとなりますが、
+syslog:facilityといった形で記述することにより、 通常 syslog(1) のドキュメントで説明されているファシリティの一つを使うように することができます。
+ErrorLog syslog:user
+セキュリティ: ログファイルを格納するディレクトリが、サーバを起動したユーザ以外の ユーザによって書き込める場合にセキュリティが破られる可能性があることに 関する詳細は セキュリティに関するコツ を 参照してください。
+Unix 以外のプラットフォームでファイルのパスを入力するときは、 プラットフォームがバックスラッシュの使用を許していたとしても、 確実にスラッシュのみが使用されるように注意してください。一般的には、 設定ファイル全般でスラッシュのみを使う方が良いでしょう。
+LogLevel
+|説明:||Format specification for error log entries|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+ErrorLogFormat [connection|request] format
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+ErrorLog
+LogLevel
+|説明:||Keep track of extended status information for each request|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+ExtendedStatus On|Off
+ExtendedStatus Off[*]
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||ETag HTTP 応答ヘッダを作成するために使用される ファイルの属性|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+FileETag component ...
+FileETag INode MTime Size
+FileETag ディレクティブは ドキュメントがファイルに基づいたものであるときに、
+ETag(エンティティタグ) 応答ヘッダフィールドを作成するときに使用する ファイルの属性を設定します。 (
+ETagの値はネットワークの帯域を節約するための キャッシュの管理で使われます。) Apache 1.3.22 以前では、
+ETagの値は 常にファイルの inode, サイズ、最終修正時刻 (mtime) から作成 されていました。
+FileETagディレクティブにより、これらのどれを使うかを 選ぶことができます。認識されるキーワードは:
+FileETag INode MTime Size
+ETag フィールドを 応答に付加しません
+INode ,
+MTime,
+Sizeキーワードには
++ や
+- を前に付けて 指定することもできます。この場合は、より広い範囲から継承された デフォルトの設定に変更を加えるようになります。そのような接頭辞の 無いキーワードを指定すると、即座に継承した設定を無効にします。
+あるディレクトリの設定に
+FileETag INode MTime Size があり、 サブディレクトリの設定に
+FileETag -INodeがあるときは、 そのサブディレクトリの設定は (設定が上書きされなければサブディレクトリの サブディレクトリにも継承されます)
+FileETag MTime Sizeと同じになります。
+mod_dav_fs をストレージプロバイダとして 使っているような Directory や Location では、デフォルト値を変更しないでください。
+mod_dav_fs では、条件付リクエストでの比較演算に
+INode MTime Size の固定フォーマットを使っています。
+FileETag で
+ETag フォーマットを 変更してしまうと、条件付リクエストでうまく動作しなくなります。
+|説明:||マッチするファイル名に適用されるディレクティブを囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+<Files filename> ... </Files>
+<Files> ディレクティブは、 その中にあるディレクティブの適用範囲をファイル名で制限します。
+<Directory>ディレクティブや
+<Location>ディレクティブと 同じような機能を持ちます。 これは、
+</Files>ディレクティブと対に なっていなければなりません。 このセクション中のディレクティブは、ベース名 (ファイル名の最後の部分) が指定されたファイル名にマッチするすべてのオブジェクトに適用されます。
+<Files>セクションは
+<Directory>セクションと
+.htaccessが読み込まれた後、
+<Location>セクションよりは先に 設定ファイルに現れた順に適用されます。
+<Files>は、
+<Directory>セクション内に ネストさせることができ、 ファイルシステムの一部にのみ限定して適用させることができます。
+filename 引数は、ファイル名かワイルドカード文字列 で、ワイルドカードでは
+? は一つの文字、
+* は任意の文字列にマッチします。
+~ という文字を付加することで正規表現を使うこともできます。 例えば、
+<Files ~ "\.(gif|jpe?g|png)$">
+とすることにより、一般的なインターネットの画像フォーマットにマッチします。 ただし、
+<FilesMatch> を使う方が 推奨されています。
+ちなみに、
+<Directory> と
+<Location>セクションとは異なり、
+<Files>は
+.htaccessファイル内で利用することができます。 これにより、ユーザがファイル毎にアクセスの制御を行なうことができるように なっています。
+|説明:||正規表現にマッチするファイル名に適用される ディレクティブを囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+<FilesMatch regex> ... </FilesMatch>
+<FilesMatch> ディレクティブは、
+<Files>ディレクティブ同様にその中にあるディレクティブの適用範囲をファイル名で制限します。ただし、 このディレクティブには正規表現を指定します。 例えば:
+<FilesMatch "\.(gif|jpe?g|png)$">
+は一般的なインターネットの画像形式にマッチします。
+|説明:||すべてのマッチするファイルが指定の MIME コンテントタイプで 送られるようにする|
+|構文:|
+|コンテキスト:||ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Apache 2.0 で core に移動|
+ForceType MIME-type|None
+.htaccess や
+<Directory>セクション、
+<Location>セクション、
+<Files>セクションに 書かれた場合、このディレクティブはそこにあるすべてのファイルが MIME-type で指定されたコンテントタイプとして扱われるようにします。たとえば、 GIF ファイルばかりのディレクトリがあって、すべてのファイルを
+.gifで終わらせたくはないときに、以下のものを使用します:
+ForceType image/gif
+DefaultType と違って このディレクティブはメディアタイプを決めることができるかもしれない ファイルの拡張子も含め、すべての MIME タイプの関連付けを 上書きすることに注意してください。
+None という値を使うことで
+ForceTypeの 設定を無効にできます:
+# force all files to be image/gif:
+<Location /images>
+ForceType image/gif
+</Location>
+# but normal mime-type associations here:
+<Location /images/mixed>
+ForceType None
+</Location>
+|説明:||Directory to write gmon.out profiling data to.|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+GprofDir /tmp/gprof/|/tmp/gprof/%
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||クライアントの IP アドレスの DNS ルックアップを 有効にする|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+HostnameLookups On|Off|Double
+HostnameLookups Off
+このディレクティブは、ホスト名をログ収集できるように DNS ルックアップを有効にします (さらに、CGI/SSI に
+REMOTE_HOST 変数として渡します)。
+Doubleを指定した場合、2 重の逆引きを行ないます。 つまり、逆引きの後に、その結果に対して正引きを行ないます。正引きの 結果の IP アドレスの中にオリジナルのアドレスと一致するものがなければ なりません。("tcpwrappers" の用語では
+PARANOIDと呼ばれています。)
+mod_authz_host でホスト名によるアクセス 制御を行なう場合には、 設定の如何によらず 2 重の逆引きが実行されます。 これは、セキュリティを保つために必要です。
+HostnameLookups Doubleを設定しない限り、 他の部分はこの 2 重逆引きの結果を使うことはできません。 例えば、
+HostnameLookups Onと設定してある状態で、 ホスト名によるアクセス制限を行なったオブジェクトへの リクエストを受けたとすると、2 重の逆引きが成功するか否かによらず、
+REMOTE_HOSTには通常の逆引き結果が渡されます。
+ディレクティブのデフォルトは 本当に逆引きを必要としているわけではないサイトの ネットワークトラフィックを低減させるために、
+Off になっています。 ルックアップによる余計な遅延がなくなるため、 エンドユーザにとっても良いでしょう。 DNS のルックアップには、かなりの時間が必要となる場合が多く、 負荷の高いサイトではこのディレクティブは
+Offにすべきです。 なお、/support ディレクトリに含まれ、デフォルトでは インストールディレクトリの
+binサブディレクトリに インストールされる
+logresolveユーティリティにより、 Apache の動作とは別に、ログに残されている IP アドレスからホスト名を ルックアップすることが可能です。
+|説明:||Modify restrictions on HTTP Request Messages|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||2.2.32 or 2.4.24 and later|
+HttpProtocolOptions [Strict|Unsafe] [RegisteredMethods|LenientMethods] [Allow0.9|Require1.0]
+HttpProtocolOptions Strict LenientMethods Allow0.9
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||実行時、リクエストが条件を満たした場合にのみ適用される ディレクティブを包含する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+<If expression> ... </If>
+<If> ディレクティブは 実行時に式を評価し、条件式が真になるときにのみ 内包するディレクティブを適用します。 例えば
+<If "$req{Host} = ''">
+上記例は Host: ヘッダの存在しない HTTP/1.0 のリクエストに マッチします。
+<If> は
+<Files> と同じ処理順と用法になっています。
+|説明:||起動時にテストが真であるときのみに処理されるディレクティブを 囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+<IfDefine [!]parameter-name> ... </IfDefine>
+<IfDefine test>...</IfDefine> セクションは、 ディレクティブを条件付きで指定するために利用します。
+<IfDefine>セクションに 含まれるディレクティブは、testが 定義されているときのみ処理されます。 もし test が定義されていなければ、 開始と終了の指定の間のディレクティブは無視されます。
+<IfDefine> セクションディレクティブに 指定する test は、 次の二つの形式のうちの一つをとります:
+! parameter-name
+前者の場合には、parameter-name と名付けられたパラメータが 定義されていれば開始と終了の間のディレクティブが処理されます。 後者の場合は逆で、parameter-name が指定されていない 場合に処理されます。
+parameter-name 引数は、サーバを起動する際に
+httpd のコマンドラインに
+-Dparameterという形で指定するか あるいは
+Defineディレクティブで指定されると定義されます。
+<IfDefine> セクションは 入れ子にすることができ、複数のパラメータによるテストをするために使用できます。 例:
+httpd -DReverseProxy -DUseCache -DMemCache ...
+# apache2.conf
+<IfDefine ReverseProxy>
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_http_module modules/mod_proxy_http.so
+<IfDefine UseCache>
+LoadModule cache_module modules/mod_cache.so
+<IfDefine MemCache>
+LoadModule mem_cache_module modules/mod_mem_cache.so
+</IfDefine>
+<IfDefine !MemCache>
+LoadModule cache_disk_module modules/mod_cache_disk.so
+</IfDefine> </IfDefine> </IfDefine>
+|説明:||Encloses directives that are processed conditional on the presence or absence of a specific directive|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in 2.4.34 and later.|
+<IfDirective [!]directive-name> ... </IfDirective>
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+<IfSection>
+|説明:||Encloses directives that will be processed only if file exists at startup|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in 2.4.34 and later.|
+<IfFile [!]filename> ... </IfFile>
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||モジュールの存在するかしないかに応じて処理される ディレクティブを囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||モジュール識別子はバージョン 2.1 以降で使用可能。|
+<IfModule [!]module-file|module-identifier> ... </IfModule>
+<IfModule test>...</IfModule> セクションは、モジュールが存在するときに処理されるディレクティブを 指定するために利用します。
+<IfModule>セクションに 含まれるディレクティブは、test で指定するモジュールが組み込まれているときのみ処理されます。 もし test が組み込まれていなければ、開始と終了の間のディレクティブ は無視されます。
+<IfModule> セクションディレクティブに 指定する test は、 次の二つの形式のうちの一つをとります。
+前者の場合は、module と名付けられたモジュールが Apache に組み込まれていれば (コンパイル済みのものと、
+LoadModule を利用して 動的に読み込んだものの両方)、 開始と終了の間のディレクティブが処理されます。 後者の場合は逆で、module が組み込まれていない 場合に処理されます。
+module 引数は、モジュール識別子か コンパイルをした時のモジュールのファイル名です。 例えば、
+rewrite_module は識別子で
+mod_rewrite.cはファイル名です。 モジュールが複数のソースファイルから構成されている場合は、文字列
+STANDARD20_MODULE_STUFFがあるファイルの名前を 使ってください。
+<IfModule> セクションは 入れ子にすることが可能であり、 複数のモジュールのテストを行なうために使用できます。
+<IfModule> セクションの中に 入れる必要はありません。
+|説明:||Encloses directives that are processed conditional on the presence or absence of a specific section directive|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in 2.4.34 and later.|
+<IfSection [!]section-name> ... </IfSection>
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+<IfDirective>
+|説明:||サーバ設定ファイル中から他の設定ファイルを取り込む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||ワイルドカードによるマッチは 2.0.41 以降で使用可能|
+Include file-path|directory-path
+このディレクティブにより、サーバの設定ファイルから 他の設定ファイルをインクルードすることができます。
+複数のファイルをアルファベット順に一度に読み込むために、 シェル形式 (
+fnmatch ) のワイルドカード文字を使うことができます。 さらに、
+Includeにディレクトリを指定した場合は、 ディレクトリとそのサブディレクトリ内の全てのファイルを アルファベット順に読み込んで、設定ファイルとして処理します。 しかし、ディレクトリ全体を読み込むのはお勧めできません。 ふとしたことから
+httpdが読み込みに失敗するような 一時ファイルをディレクトリに残してしまうようなことがよくあるからです。
+指定するファイルパスは絶対パスか、
+ServerRoot ディレクトリからの 相対パスか、のどちらかです。
+例:
+Include /usr/local/apache2/conf/ssl.conf
+Include /usr/local/apache2/conf/vhosts/*.conf
+ServerRoot からの相対パスの場合は:
+Include conf/ssl.conf
+Include conf/vhosts/*.conf
+apache2ctl
+|説明:||Includes other configuration files from within the server configuration files|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in 2.3.6 and later. Not existent file paths without wildcards do not cause SyntaxError after 2.4.30|
+IncludeOptional file-path|directory-path|wildcard
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+Include
+apache2ctl
+|説明:||HTTP の持続的な接続を有効にする|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+KeepAlive On|Off
+KeepAlive On
+HTTP/1.0 の Keep-Alive 拡張と HTTP/1.1 の持続的接続の機能は、 複数のリクエストが同じ TCP の接続で送られる、長時間持続する HTTP セッションを提供します。たくさんの画像が 含まれる HTML ドキュメントでは場合によっては遅延時間が 50% 短縮される結果も でています。Keep-Alive 接続を有効にするには
+KeepAlive On と設定します。
+HTTP/1.0 に対応したクライアントの際には、 クライアントより特に要求があった場合のみ Keep-Alive 接続となります。 さらに、HTTP/1.0 クライアントでは、コンテンツの容量が先に (訳注: 要求に対して応答を返す前に) わかる場合のみ Keep-Alive 接続を利用できます。 これは、CGI の出力や SSI のページ、 サーバが生成したディレクトリのリストのような動的コンテンツを HTTP/1.0 クライアントに送る場合には Keep-Alive 接続を使えないことを意味します。 HTTP/1.1 に対応したクライアントの際には、 特に指定されない限りはデフォルトとして持続的な接続が行なわれます。 クライアントが要求すれば、コンテンツの容量を判別できないものを 持続的な接続を通して送るために、チャンクエンコーディングが用いられます。
+クライアントが Keep-Alive コネクションを使用している場合、 そのコネクションを通してどれだけたくさんのリクエストが処理されても、 それは「リクエスト」1 つとして、MaxRequestsPerChild ディレクティブでは 数えられます。
+MaxKeepAliveRequests
+|説明:||持続的な接続で次のリクエストが来るまでサーバが待つ時間|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+KeepAliveTimeout seconds
+KeepAliveTimeout 5
+接続を閉じる前に、Apache が次のリクエストを何秒待つかを指定します。 リクエストを受け付けた後は、
+Timeout ディレクティブによって 指定されたタイムアウト値が使われます。
+KeepAliveTimeout を大きな値に設定すると、 負荷の高いサーバにおいてはパフォーマンスの問題を引き起こす場合があります。 タイムアウトが長ければ長いほど、より多くのサーバプロセスが 活性でないクライアントからの接続の終了を待ち続けることになります。
+名前ベースのバーチャルホストコンテキストでは、
+NameVirtualHost のセットの中で最初に定義されたバーチャルホストの値 (デフォルトホスト) が使われます。 その他の値は無視されます。
+|説明:||囲いの中にあるアクセス制御の適用を特定の HTTP メソッドのみに 制限する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+<Limit method [method] ... > ... </Limit>
+アクセス制御は、通常全てのアクセスメソッドに対して 影響し、普通はこれが望ましい挙動です。 そうしたことから、大部分の場合にはアクセス制御に関わるディレクティブを
+<Limit> セクション内に 書くべきではありません。
+<Limit> ディレクティブの 目的は、アクセス制御の範囲を 指定された HTTP メソッドに限定するためです。 それ以外のメソッドは、
+<Limit>で囲われたアクセス制御の 影響を受けません。 以下の例は、
+POST,
+PUT,
+DELETEのメソッドに対してのみアクセスの制御を行ない、 それ以外のメソッドについては制限しません:
+<Limit POST PUT DELETE>
+Require valid-user
+</Limit>
+メソッド名には以下の中から一つ以上を列挙することができます:
+GET ,
+POST,
+PUT,
+DELETE,
+CONNECT,
+OPTIONS,
+PATCH,
+PROPFIND,
+PROPPATCH,
+MKCOL,
+COPY,
+MOVE,
+LOCK,
+UNLOCK. メソッド名は 大文字小文字を区別します。
+GETを指定した場合には
+HEADリクエストにも制限がかかります。
+TRACEメソッドに制限をかけることはできません (
+<TraceEnable>参照)。
+<Limit> セクションの代わりに
+<LimitExcept> セクションを使用した方が良いでしょう。
+<LimitExcept> セクションでは不特定のメソッドに対しても防御できるからです。
+|説明:||指定されたもの以外の HTTP メソッドにアクセス制御を 制限する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+<LimitExcept method [method] ... > ... </LimitExcept>
+<LimitExcept> と
+</LimitExcept>は、引数に 含まれていない HTTP のアクセスメソッドに適用するためのアクセス制御 ディレクティブを括るために利用します。 つまり、
+<Limit>セクションの反対の動作をし、 標準のメソッドと標準外や未認識のメソッドの場合の両方を設定できます。
+<Limit>のドキュメントも 併せて参照してください。
+例:
+<LimitExcept POST GET>
+Require valid-user
+</LimitExcept>
+|説明:||内部リダイレクトと入れ子になったサブリクエストの最大数を決定する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Apache 2.0.47 以降で使用可能|
+LimitInternalRecursion number [number]
+LimitInternalRecursion 10
+内部リダイレクトは例えば
+Action ディレクティブを 使っているときに起こります。
+Actionディレクティブは 元々のリクエストを CGI スクリプトに内部リダイレクトを行ないます。 サブリクエストはいくつかの URI に対して、リクエストされたときに 何が起こるかを調べるための Apache の機構です。例えば、
+mod_dirは
+DirectoryIndexディレクティブ がリストするファイルを調べるためにサブリクエストを使います。
+LimitInternalRecursion は内部リダイレクトや サブリクエストが無限ループに陥ったときのサーバクラッシュを防ぎます。 普通、そのようなループは設定に失敗したときに発生します。
+このディレクティブは、リクエスト毎に評価される、二つの違う限界値を 設定します。最初の number は、起こり得る 内部リクエストの最大値を設定します。二つめの number は サブリクエストが入れ子にできる深さを設定します。number を 一つだけ指定したときは、両方の限界値にその値が設定されます。
+LimitInternalRecursion 5
+|説明:||クライアントから送られる HTTP リクエストのボディの 総量を制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+LimitRequestBody bytes
+LimitRequestBody 0
+このディレクティブは、リクエストボディに許されるバイト数、bytes を 0 (無制限を意味します) から 2147483647 (2GB) までの数値で指定します。
+LimitRequestBody ディレクティブは、 ディレクティブが書かれたコンテキスト (サーバ全体、ディレクトリ、ファイル、ロケーション) 内で 許容する HTTP リクエストメッセージボディのサイズに制限をかけることができます。 クライアントのリクエストがその制限値を越えていれば、 サーバはリクエストを処理せずにエラーを返します。 普通のリクエストメッセージボディのサイズは、リソースの種類や 許可されているメソッドによって大きく変わります。 CGI スクリプトは、よく情報を受信するために メッセージボディを使います。
+PUTメソッドの実装は、このディレクティブの値として 少なくともあるリソースに対してサーバが受け付けようとする 表現の大きさほどの値を必要とします。
+このディレクティブは、 管理者にクライアントからの異常なリクエストを制御できるようにし、 何らかの形のサービス拒否攻撃 (訳注:DoS) を避けるのに有効です。
+ある場所へのファイルアップロードを許可する場合に、 アップロードできるファイルのサイズを 100K に制限したければ、 以下のように指定します:
+LimitRequestBody 102400
+|説明:||クライアントからの HTTP リクエストのヘッダフィールドの数を 制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+LimitRequestFields number
+LimitRequestFields 100
+number には、0 (無制限を意味します) から 32767 までの整数を指定します。 デフォルト値は、定数
+DEFAULT_LIMIT_REQUEST_FIELDS によりコンパイル時に定義されます (配布時には 100 と指定されています)。
+LimitRequestBody ディレクティブは、 サーバ管理者が HTTP リクエスト中において許可するリクエストヘッダフィールド数を 指定します。 サーバはこの値には通常のクライアントからのリクエストに含まれるであろう フィールドの数より大きな値が必要とします。 クライアントにより使われた要求ヘッダーフィールドの数が 20 を超えることはほとんどありませんが、 これは種々のクライアントの実装によって変わり、 詳細なコンテントネゴシエーションをするためのブラウザの設定までにも 影響されることがあります。 オプションの HTTP 拡張はリクエストヘッダフィールドを使って表される場合が 多くあります。
+このディレクティブは、 管理者にクライアントからの異常なリクエストを制御できるようにし、 何らかの形のサービス拒否攻撃 (訳注:DoS) を避けるのに有効です。 リクエストのフィールドが多過ぎることを意味するエラー応答が 普通のクライアントに返されるような時はこの値を増やしてください。
+例:
+LimitRequestFields 50
+|説明:||クライアントからの HTTP リクエストのヘッダの サイズを制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+LimitRequestFieldSize bytes
+LimitRequestFieldSize 8190
+このディレクティブは、HTTP リクエストヘッダ一つで受付ける バイト数 bytes を指定します。
+LimitRequestFieldSize ディレクティブは、 HTTP リクエストヘッダで許容されるサイズを増減させることができます。 サーバは、このディレクティブの値として、 一般的なクライアントからリクエストが送られた際に、そのリクエストに 付属しているどのヘッダフィールドについても、 十分足りる大きさになっていなければなりません。 一般的なリクエストヘッダのサイズといっても、その大きさは個々の クライアントの実装によって大きく異なり、 詳細なコンテントネゴシエーションをサポートするかどうかの、 ブラウザの設定にも影響されたりします。 SPNEGO 認証ヘッダでは 12392 バイトにまで及ぶことすらあります。
+このディレクティブは、 管理者にクライアントからの異常なリクエストを制御できるようにし、 何らかの形のサービス拒否攻撃 (訳注:DoS) を避けるのに有効です。
+例:
+LimitRequestFieldSize 4094
+|説明:||クライアントからの HTTP リクエスト行のサイズを制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+LimitRequestLine bytes
+LimitRequestLine 8190
+このディレクティブは、HTTP リクエスト行内で許容されるバイト数 bytes を指定します。
+LimitRequestLine ディレクティブにより、 クライアントからの HTTP リクエスト行の許容サイズを増減できます。 リクエスト行は、HTTPメソッド、URI、プロトコルバージョンから成っており、
+LimitRequestLineはサーバへのリクエストに対して 許容するリクエスト URI の長さを制限することになります。 サーバは、
+GETリクエストのクエリ部分も含めて、リソースの名前が入るに足る 大きさを必要とします。
+このディレクティブは、 管理者にクライアントからの異常なリクエストを制御できるようにし、 何らかの形のサービス拒否攻撃 (訳注:DoS) を避けるのに有効です。
+例:
+LimitRequestLine 4094
+|説明:||XML 形式のリクエストのボディのサイズを制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+LimitXMLRequestBody bytes
+LimitXMLRequestBody 1000000
+XML 形式のリクエストのボディの最大値を (バイト単位で) 制限します。 値に
+0 を指定するとチェックを無効にします。
+例:
+LimitXMLRequestBody 0
+|説明:||囲んだディレクティブをマッチする URL のみに適用|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+<Location URL-path|URL> ... </Location>
+<Location> ディレクティブは、 URL により中に書かれたディレクティブの適用範囲を制限します。
+<Directory>ディレクティブと似ていて、
+</Location>ディレクティブで終了する サブセクションを開始します。
+<Location>セクションは、
+<Directory>セクションと
+.htaccessの読み込みの後、
+<Files>セクションを 適用した後に、設定ファイルに現れた順に処理されます。
+<Location> セクションは 完全にファイルシステムと関連せずに動作します。このことから導かれる 結果にはいくつか注意する点があります。最も重要なものは、 ファイルシステムの位置へのアクセス制御に
+<Location>ディレクティブを使うべきではない ということです。複数の URL がファイルシステムの同じ位置にマップされる 可能がありますので、そのようなアクセス制御は回避されてしまう可能性が あります。
+<Location> を使うか
+<Location> ディレクティブは ファイルシステム外のコンテンツにディレクティブを適用するときに 使用してください。ファイルシステムに存在するコンテンツに対しては、
+<Directory>と
+<Files>を使ってください。 例外は、
+<Location />で、これはサーバ全体に対して 設定を適用する簡単な方法です。
+全ての (プロキシ以外の) リクエストに対し、 URL は
+/path/ という、 接頭辞
+http://servernameを含まない形でマッチします。 プロキシリクエストの場合には、
+scheme://servername/pathという接頭辞を含む形でマッチし、接頭辞を含めて指定する必要があります。
+URL にはワイルドカードを利用することができます。
+? は任意の一文字、
+* は任意の文字列にマッチします。 どちらのワイルドカードも URL パス中の / にはマッチしません。
+~ という文字を追加することで、正規表現を 利用することもできます。 例えば:
+<Location ~ "/(extra|special)/data">
+は URL に
+/extra/data か
+/special/dataという文字列が 含まれている場合にマッチします。
+<LocationMatch>ディレクティブは
+<Location>の正規表現 版とまったく同じ動作をします。
+<Location> 機能は、
+SetHandlerディレクティブと 組合わせて利用すると特に便利です。 例えば、
+example.comのブラウザからのみステータスの参照を有効にしたければ、 次のようにすれば良いでしょう。
+<Location /status>
+SetHandler server-status
+Order Deny,Allow
+Deny from all
+Allow from .example.com
+</Location>
+スラッシュ文字は、URL 内に現れる場所に応じて変化する 特別な意味を持っています。 ファイルシステムにおいて利用する場合には複数のスラッシュでも一つの スラッシュとして扱われることが多いですが、 (すなわち、
+/home///foo は
+/home/fooと同じといったように) URL においては必ずしもそうなるわけではありません。
+<LocationMatch>ディレクティブや正規表現を利用した
+<Location>ディレクティブで、 複数のスラッシュにマッチさせたいときには、明示的に記述する 必要があります。
+例えば、
+<LocationMatch ^/abc> は、
+/abcというリクエスト URL にマッチしますが、
+//abcというリクエスト URL にはマッチしません。 (正規表現でない)
+<Location>ディレクティブは、 proxy リクエストに対して利用する際には同様の振る舞いをしますが、 (正規表現でない)
+<Location>を proxy でないリクエストに対して利用する際には、 一つのスラッシュで複数のスラッシュにマッチします。 例えば、
+<Location /abc/def>と指定し、
+/abc//defというリクエストがあれば、 マッチすることになります。
+|説明:||囲んだディレクティブを正規表現にマッチする URL のみに 適用|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+<LocationMatch regex> ... </LocationMatch>
+<LocationMatch> ディレクティブは、
+<Location>と同じ様に URL により中に書かれたディレクティブの適用範囲を制限します。 但し、引数は普通の文字列ではなく、正規表現となります。 例えば、
+<LocationMatch "/(extra|special)/data">
+は URL に
+/extra/data か
+/special/dataという文字列が含まれている場合にマッチします。
+|説明:||ErrorLog の冗長性を制御する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+LogLevel level
+LogLevel warn
+LogLevel は、エラーログ (
+ErrorLogディレクティブを 見てください) へ記録するメッセージの冗長性を調整します。 以下の level を指定でき、順に重要度が下がっていきます。
+|レベル||説明||例|
+|緊急 - システムが利用できない||Child cannot open lock file. Exiting (子プロセスがロックファイルを開けないため終了した)|
+|直ちに対処が必要||getpwuid: couldn't determine user name from uid (getpwuid: UID からユーザ名を特定できなかった)|
+|致命的な状態||socket: Failed to get a socket, exiting child (socket: ソケットが得られないため、子プロセスを終了させた)|
+|エラー||Premature end of script headers (スクリプトのヘッダが足りないままで終わった)|
+|警告||child process 1234 did not exit, sending another SIGHUP (子プロセス 1234 が終了しなかった。もう一度 SIGHUP を送る)|
+|普通だが、重要な情報||httpd: caught SIGBUS, attempting to dump core in ... (httpd: SIGBUS シグナルを受け、... へコアダンプをした)|
+|追加情報||"Server seems busy, (you may need to increase StartServers, or Min/MaxSpareServers)..." (「サーバは負荷が高い、 (StartServers や Min/MaxSpareServers の値を増やす必要があるかも)」)|
+|デバッグメッセージ||"Opening config file ..." (設定ファイルを開いている...)|
+emerg
+alert
+crit
+error
+warn
+notice
+info
+debug
+特定のレベルが指定された場合、それより高いレベルの全てのメッセージが 報告されます。 例えば、
+LogLevel info に指定すると、
+noticeと
+warnも報告されます。
+なお
+crit 以上のレベルを指定することが推奨されます。
+例:
+LogLevel notice
+ファイルにログを出力する場合、
+notice レベルのメッセージは抑制されず、すべてログに出力されます。 しかし
+syslogを使用している場合は、 これは当てはまりません。
+|説明:||持続的な接続上で許可されるリクエストの数|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+MaxKeepAliveRequests number
+MaxKeepAliveRequests 100
+MaxKeepAliveRequests ディレクティブは、
+KeepAliveが有効な場合に、 一回の接続で受け付け可能なリクエストの数を制限します。
+0に設定していれば、受け付けるリクエストは無制限になります。 この設定は、サーバ性能を向上させるために、大きな数値を指定することを勧めます。
+例:
+MaxKeepAliveRequests 500
+|説明:||Number of overlapping ranges (eg:|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.3.15 and later|
+100-200,150-300 ) allowed before returning the complete resource
+MaxRangeOverlaps default | unlimited | none | number-of-ranges
+MaxRangeOverlaps 20
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Number of range reversals (eg:|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.3.15 and later|
+100-200,50-70 ) allowed before returning the complete resource
+MaxRangeReversals default | unlimited | none | number-of-ranges
+MaxRangeReversals 20
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Number of ranges allowed before returning the complete resource|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.3.15 and later|
+MaxRanges default | unlimited | none | number-of-ranges
+MaxRanges 200
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Determines whether trailers are merged into headers|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||2.4.11 and later|
+MergeTrailers [on|off]
+MergeTrailers off
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Configures mutex mechanism and lock file directory for all or specified mutexes|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.3.4 and later|
+Mutex mechanism [default|mutex-name] ... [OmitPID]
+Mutex default
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||名前ベースのバーチャルホストのための IP アドレスを指定|
+|構文:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+NameVirtualHost addr[:port]
+NameVirtualHost ディレクティブは、 名前ベースのバーチャルホストの設定を行ないたい場合に 必要となるものです。
+addr にはホスト名を指定できますが、 常に IP アドレスを指定するのが推奨されます。 例えば、
+NameVirtualHost 111.22.33.44
+NameVirtualHost ディレクティブは、 名前ベースのバーチャルホストを 利用してリクエストを受け付ける IP アドレスを指定します。 これは、普通は名前ベースのバーチャルホストアドレスです。 ただし、ファイアーウォールや他のプロキシがリクエストを受け付け、 違う IP アドレスのサーバにフォワードするという場合は、 リクエストを提供したいマシン上の物理インターフェースの IP アドレスを指定する必要があります。 複数のアドレスで複数の名前ベースのバーチャルホストを指定する場合は 各アドレスに対してディレクティブを書いてください。
+「主サーバ」や、どの
+_default_ サーバも、
+NameVirtualHostで指定した IP アドレスへのリクエスト を処理することはありません (なぜか
+NameVirtualHostを 指定したけどそのアドレスに
+VirtualHostを定義しなかった場合を除く)。
+名前ベースのバーチャルホストにポート番号を指定することも可能です。 例えば
+NameVirtualHost 111.22.33.44:8080
+IPV6 のアドレスは次の例のように角括弧で囲む必要があります:
+NameVirtualHost [2001:db8::a00:20ff:fea7:ccea]:8080
+すべてのインタフェースへのリクエストを受け取るようにするためには、 引数として
+* を使います。
+NameVirtualHost *
+<VirtualHost> ディレクティブの引数
+<VirtualHost> ディレクティブの引数は
+NameVirtualHostディレクティブの引数に正確に 合っている必要があることに注意してください。
+NameVirtualHost 1.2.3.4
+<VirtualHost 1.2.3.4>
+# ...
+</VirtualHost>
+|説明:||ディレクトリに対して使用可能な機能を設定する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||Options|
+|ステータス:||Core|
+|モジュール:||core|
+Options [+|-]option [[+|-]option] ...
+Options All
+Options ディレクティブは、特定のディレクトリに対して どの機能が使用可能かを制御します。
+option を
+None に指定すると、 特別な機能は全て無効になります。 また、以下の示す 1 個以上のものを指定できます。
+All
+MultiViews を除いた全ての機能が有効となります。 これがデフォルトです。
+ExecCGI
+mod_cgi による CGI スクリプトの実行を許可します。
+FollowSymLinks
+サーバがシンボリックリンクをたどる場合でも、
+<Directory> セクションに マッチさせるための パス名は変更されません。
+<Location> 内に このオプションを指定しても無視されることに 注意してください。
+このオプションを省略したからといってセキュリティの強化にはなりません。 なぜなら symlink の検査はレースコンディションを引き起こす可能性があり、 そのため回避可能になるからです。
+Includes
+mod_include が提供する SSI を有効にします。
+IncludesNOEXEC
+#exec コマンド と
+#exec CGI は無効になります。 ただし、
+#include virtual により、
+ScriptAlias されたディレクトリで CGI を実行することは可能です。
+Indexes
+DirectoryIndex で指定したファイル (例えば、
+index.html ) が ディレクトリ内に無ければ、
+mod_autoindex が ディレクトリ内の一覧を整形して返します。
+MultiViews
+mod_negotiation による コンテントネゴシエーション された "MultiViews" を許可します。
+SymLinksIfOwnerMatch
+<Location> 内にこのオプションを 指定しても無視されます。
+このオプションはセキュリティの強化にはなりません。 なぜなら symlink の検査はレースコンディションを引き起こす可能性があり、 そのため回避可能になるからです。
+通常、ディレクトリに対して複数の
+Options が 適用可能な場合、 最も近いもの一つのみが適用され、他のものは無視されます。 複数の指定がマージされるわけではありません。(セクションのマージ方法を参照してください。) しかし、すべての
+Optionsディレクティブが
++ や
+- 付きで 指定された場合はオプションの値はマージされます。
++ を頭につければ現在の設定に加えられ、
+- を付ければ現在の設定から削除されます。
+Options で
++ や
+- のついたものを、つけないものと組み合わせて 指定する構文は正しい構文ではありませんので、期待する結果に ならないことがあります。
+例えば、
++ や
+- を利用しない場合は:
+<Directory /web/docs>
+Options Indexes FollowSymLinks
+</Directory>
+<Directory /web/docs/spec>
+Options Includes
+</Directory>
+/web/docs/spec というディレクトリには、
+Includesだけが適用されます。 しかし、2 番目の
+Optionsで
++ や
+- を利用してみると:
+<Directory /web/docs>
+Options Indexes FollowSymLinks
+</Directory>
+<Directory /web/docs/spec>
+Options +Includes -Indexes
+</Directory>
+/web/docs/spec というディレクトリには、
+FollowSymLinksと
+Includesが適用されます。
+-IncludesNOEXEC もしくは
+-Includesを指定すると、 前の設定がどのようになっていようとも SSI は無効となります。
+どのような設定もされていなければ、デフォルトでは
+All に なります。
+|説明:||Protocol for a listening socket|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache 2.1.5 and later. On Windows, from Apache 2.3.3 and later.|
+Protocol protocol
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+AcceptFilter
+Listen
+|説明:||Protocols available for a server/virtual host|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Only available from Apache 2.4.17 and later.|
+Protocols protocol ...
+Protocols http/1.1
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+ProtocolsHonorOrder
+|説明:||Determines if order of Protocols determines precedence during negotiation|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Only available from Apache 2.4.17 and later.|
+ProtocolsHonorOrder On|Off
+ProtocolsHonorOrder On
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+Protocols
+|説明:||Controls whether the REDIRECT_URL environment variable is fully qualified|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Directive supported in 2.4.18 and later. 2.4.17 acted as if 'QualifyRedirectURL ON' was configured.|
+QualifyRedirectURL ON|OFF
+QualifyRedirectURL OFF
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Allow to configure global/default options for regexes|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Only available from Apache 2.4.30 and later.|
+RegexDefaultOptions [none] [+|-]option [[+|-]option] ...
+RegexDefaultOptions DOLLAR_ENDONLY
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||Register non-standard HTTP methods|
+|構文:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache HTTP Server 2.4.24 and later|
+RegisterHttpMethod method [method [...]]
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+HTTPProtocolOptions
+AllowMethods
+|説明:||Apache の子プロセスから起動されたプロセスの CPU 消費量を 制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+RLimitCPU seconds|max [seconds|max]
+未設定。オペレーティングシステムのデフォルトを使用
+一つか二つのパラメータをとります。 最初のパラメータは全プロセスに対するリソースのソフトリミットを設定し、 2 番目のパラメータは最大のリソースリミットを設定します。 パラメータには数字か、オペレーティングシステムの最大となる
+max のどちらかを指定することができます。 最大のリソースリミットを上げるためには、サーバを
+rootで実行するか起動されなければいけません。
+ちなみに、この設定は Apache の子プロセス自体ではなく、 リクエストを受け付けた Apache の子プロセスから fork されたプロセスに 適用されます。 これには CGI や SSI から実行されたコマンドが含まれますが、Apache の 親プロセスから fork されたログのパイププロセスなどには適用されません。
+CPU リソースのリミットはプロセスあたりの秒数で表わされます。
+RLimitMEM
+RLimitNPROC
+|説明:||Apache の子プロセスから起動されたプロセスのメモリ消費量を 制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+RLimitMEM bytes|max [bytes|max]
+未設定。オペレーティングシステムのデフォルトを使用
+一つか二つのパラメータをとります。 最初のパラメータは全プロセスに対するリソースのソフトリミットを設定し、 2 番目のパラメータは最大のリソースリミットを設定します。 パラメータには数字か、オペレーティングシステムの最大となる
+max のどちらかを指定することができます。 最大のリソースリミットを上げるためには、サーバを
+rootで実行するか起動されなければいけません。
+この設定は Apache の子プロセス自体ではなく、 リクエストを受け付けた Apache の子プロセスから fork されたプロセスに 適用されます。 これには CGI や SSI から実行されたコマンドが含まれますが、Apache の 親プロセスから fork されたログのパイププロセスなどには適用されません。
+メモリリソースのリミットはプロセスあたりのバイト数で表わされます。
+RLimitCPU
+RLimitNPROC
+|説明:||Apache の子プロセスから起動されたプロセスが起動するプロセスの 数を制限する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+RLimitNPROC number|max [number|max]
+未設定。オペレーティングシステムのデフォルトを使用
+一つか二つのパラメータをとります。 最初のパラメータは全プロセスに対するリソースのソフトリミットを設定し、 2 番目のパラメータは最大のリソースリミットを設定します。 パラメータには数字か、オペレーティングシステムの最大となる
+max のどちらかを指定することができます。 最大のリソースリミットを上げるためには、サーバを
+rootで実行するか起動されなければいけません。
+この設定は Apache の子プロセス自体ではなく、 リクエストを受け付けた Apache の子プロセスから fork されたプロセスに 適用されます。 これには CGI や SSI から実行されたコマンドが含まれますが、Apache の 親プロセスから fork されたログのパイププロセスなどには適用されません。
+プロセスの制限は、ユーザあたりのプロセス数で制御されます。
+CGI プロセスがウェブサーバのユーザ ID 以外で実行されるので 無ければ、 このディレクティブは、サーバ自身が生成できるプロセスの数を制限することになります。 そのような状況になっているかどうかは、
+error_log 中の
+cannot forkというメッセージにより 確認することができます。
+RLimitMEM
+RLimitCPU
+|説明:||CGI スクリプトのインタープリタの位置を調べるための手法|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Win32 のみ。 オプション|
+ScriptInterpreterSource Registry|Registry-Strict|Script
+ScriptInterpreterSource Script
+Registry-Strict は Apache 2.0 以降で使用可能
+このディレクティブは、Apache で CGI スクリプトを 実行する場合に利用するインタープリタを、 どのように探し出すかについて制御するために使用します。 デフォルトの設定は
+Script です。これはスクリプトの shebang 行 (最初の行で
+#! から始まるもの) に指されているインタープリタを使用します。Win32 ではその行は 以下の様になります。
+#!C:/Perl/bin/perl.exe
+もしくは、
+perl が
+PATHにある場合は単に:
+#!perl
+ScriptInterpreterSource Registry を指定すると、 スクリプトファイルの拡張子 (例えば、
+.pl) を キーとして、Windows のレジストリツリー
+HKEY_CLASSES_ROOTを検索するようになります。レジストリのサブキー
+Shell\ExecCGI\Commandか、それが存在しない場合は
+Shell\Open\Commandがスクリプトファイルを開くために 使われます。レジストリキーが見つからないときは、Apache は
+Scriptオプションが指定されたときの動作に戻ります。
+ScriptInterpreterSource Registry を
+ScriptAliasされたディレクトリで使うときは 注意してください。Apache はそのディレクトリ中のすべてのファイルを 実行しようとします。
+Registryという設定は通常は実行されない ファイルに対して望ましくないプログラムの実行が発生する可能性があります。 例えば、ほとんどの Windows システムで、
+.htmファイルのデフォルトの「開く」コマンドは Microsoft Internet Explorer を実行しますので、スクリプトに指定された ディレクトリにある
+.htmファイルへのリクエストはサーバの バックグラウンドでブラウザを実行することになります。これは、一分内くらいで システムをクラッシュさるための良い方法です。
+Apache 2.0 から導入されたオプション
+Registry-Strict は
+Registryと同じことを行ないますが、サブキー
+Shell\ExecCGI\Commandのみを使います。
+ExecCGIキーは普通に使われるキーではありません。Windows レジストリに手動で設定する必要がありますので、システムでの偶発的なプログラムの 実行を防ぐことができます。
+|説明:||Determine if mod_status displays the first 63 characters of a request or the last 63, assuming the request itself is greater than 63 chars.|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Available in Apache httpd 2.2.7 and later.|
+SeeRequestTail On|Off
+SeeRequestTail Off
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+|説明:||サーバがクライアントに送るエラーメッセージに含める電子メールの アドレス|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+ServerAdmin email-address|URL
+ServerAdmin は、クライアントに返すさまざまな エラーメッセージ中に記述する、 問合せアドレスを設定します。与えられた引数を
+httpdが URL と認識しない場合は、email-address だと解釈して、 ハイパーリンクのターゲットに
+mailto:を付けます。 実際には、ここには電子メールアドレスを使うことが推奨されています。 多くの CGI スクリプトはそうなっていることを仮定しています。 URL を使う場合は、あなたの管理下にある別サーバを指すようにしてください。 そうでないと、エラーが起こったときに連絡をすることができなくなって しまいます。
+その際、これのために専用のアドレスを設定するのが良いでしょう。 例えば、
+ServerAdmin www-admin@foo.example.com
+といったようにします。ユーザはいつもサーバに関する話であるということを 明記してくるわけではありませんので。
+|説明:||リクエストを名前ベースのバーチャルホストにマッチさせているときに 使用されるホストの別名|
+|構文:|
+|コンテキスト:||バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+ServerAlias hostname [hostname] ...
+ServerAlias ディレクティブは、ネームベースのバーチャルホストにおいて 使用するホストの別名を指定します。 適切であれば、
+ServerAliasディレクティブでは ワイルドカードを使うこともできます。
+<VirtualHost *>
+ServerName server.domain.com
+ServerAlias server server2.domain.com server2
+# ...
+</VirtualHost>
+|説明:||サーバが自分自身を示すときに使うホスト名とポート|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||このディレクティブはバージョン 2.0 ではバージョン 1.3 の|
+ServerName [scheme://]fully-qualified-domain-name[:port]
+Port ディレクティブの機能も含みます。
+ServerName ディレクティブは、 サーバが自分自身を示すスキーム名、ホスト名とポート番号を設定します。 これは、リダイレクトする URL を生成する際に利用されます。 例えば、ウェブサーバを動かしているマシンは
+simple.example.comで、DNS のエイリアス
+www.example.comもあるときに、 ウェブサーバが後者として認識されて欲しいときは、以下のようにディレクティブを 使います。
+ServerName www.example.com:80
+ServerName が指定されていないときは、 サーバは IP アドレスから逆引きを行なうことでホスト名を知ろうとします。
+ServerNameにポートが指定されていないときは、 サーバはリクエストが来ている ポートを使います。最高の信頼性と確実性をもたらすためには、
+ServerNameを使ってホスト名とポートを明示的に 指定してください。
+名前ベースのバーチャルホスト を利用している場合、
+<VirtualHost> セクション内の
+ServerNameはこのバーチャルホストにマッチするために 何がリクエストの Host: ヘッダに現れる必要があるのかを指定します。
+SSL を処理するデバイス、例えばリバースプロクシやロードバランサや SSL 処理軽減アプライアンスの裏側でサーバが稼動する場合もあるでしょう。 そういった場合では、クライアントが接続するときに使う
+https:// スキームとポート番号を
+ServerNameディレクティブで指定して、自己参照 URL が正しく生成できるようにします。
+自己参照 URL (例えば
+mod_dir モジュールによるものなど) が指定されたポートを使うか、クライアントのリクエストのポート番号を使うかを 決定する設定は
+UseCanonicalNameディレクティブと
+UseCanonicalPhysicalPortディレクティブを参照してください。
+UseCanonicalName
+UseCanonicalPhysicalPort
+NameVirtualHost
+ServerAlias
+|説明:||非互換のブラウザが名前ベースのバーチャルホストにアクセスしたときの ための互換用 URL パス名|
+|構文:|
+|コンテキスト:||バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+ServerPath URL-path
+ServerPath ディレクティブは、ネームベースのバーチャルホストにおいて利用する 互換用 URL パス名を設定します。
+|説明:||インストールされたサーバのベースディレクトリ|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+ServerRoot directory-path
+ServerRoot /usr/local/apache
+ServerRoot ディレクティブは、 サーバが存在するディレクトリを設定します。 通常、
+conf/や
+logs/といったサブディレクトリが 存在します。 また、他の設定ディレクティブ (例えば
+Includeや
+LoadModuleなど) における相対パスは、 このディレクトリからの相対位置となります。
+ServerRoot /home/httpd
+httpd の
+-d オプション
+ServerRoot の権限を適切に設定する方法はセキュリティのこつ
+|説明:||サーバが生成するドキュメントのフッタを設定|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||All|
+|ステータス:||Core|
+|モジュール:||core|
+ServerSignature On|Off|EMail
+ServerSignature Off
+ServerSignature ディレクティブは、 サーバが生成するドキュメント (エラーメッセージ、
+mod_proxyにおける FTP のディレクトリリスト、
+mod_infoの出力、等々) の最下行に付与するフッタの設定を行ないます。 そのようなフッタ行を有効にしたい理由には、 プロキシが複数連なっている場合に、ユーザはどのサーバが返した エラーメッセージかを知る手段がほとんど無いというものがあります。
+デフォルトである
+Off に設定をすると、フッタ行が抑制されます (そして、Apache-1.2 以前と互換の動作をします)。
+Onに設定した場合は、単にドキュメントの中に、サーバのバージョン、 稼動中のバーチャルホストの ServerName の書かれた行を追加し、
+バージョン 2.0.44 以降では、表示されるサーバーのバージョン番号の詳細は
+ServerTokens ディレクティブにより制御されます。
+ServerTokens
+|説明:|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+Server HTTP 応答ヘッダを設定する
+ServerTokens Major|Minor|Min[imal]|Prod[uctOnly]|OS|Full
+ServerTokens Full
+このディレクティブは、クライアントに送り返す
+Server 応答ヘッダ内に、サーバの一般的な OS 種別や、 コンパイルされて組み込まれているモジュールの情報を 含めるかどうかを指定します。
+ServerTokens Prod[uctOnly]
+Server: Apache といったように送ります。
+ServerTokens Major
+Server: Apache/2
+ServerTokens Minor
+Server: Apache/2.0
+ServerTokens Min[imal]
+Server: Apache/2.0.41 といったように送ります。
+ServerTokens OS
+Server: Apache/2.0.41 (Unix) といったように送ります。
+ServerTokens Full (もしくは未指定)
+Server: Apache/2.0.41 (Unix) PHP/4.2.2 MyMod/1.2 といったように送ります。
+この設定はサーバ全体に適用され、バーチャルホスト上で有効にしたり 無効にしたりはできません。
+バージョン 2.0.44 以降ではこのディレクティブは
+ServerSignature ディレクティブにより表示される情報も制御します。
+ServerSignature
+|説明:||マッチするファイルがハンドラで処理されるようにする|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Apache 2.0 で core に移動|
+SetHandler handler-name|None
+.htaccess や
+<Directory>セクション、
+<Location>セクションに書かれた場合、 このディレクティブはそこにあるすべてのファイルが handler-name で指定されたハンドラで扱われることを強制します。例えば、拡張子に関わらず、 ディレクトリ全体がイメージマップファイルとして解析して欲しい場合には、 以下をそのディレクトリの
+.htaccessファイルに記述します:
+SetHandler imap-file
+別の例: URL
+http://servername/status が指定されたときにサーバが状態報告をするようにしたいときは、以下を
+apache2.confに記述します:
+<Location /status>
+SetHandler server-status
+</Location>
+None という値を設定することで、 前の方の
+SetHandlerで定義された設定を無効にすることが できます。
+注意:SetHandler はデフォルトのハンドラをオーバーライド しますので、通常の挙動、たとえば、スラッシュ (/) で終わる URL が リクエストされたときにディレクトリやインデックスファイルを返すよう取り扱う挙動は、 行われなくなります。
+AddHandler
+|説明:||クライアントのリクエストや POST の入力を処理するフィルタを設定する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+SetInputFilter filter[;filter...]
+SetInputFilter ディレクティブはクライアントの リクエストや POST の入力をサーバが受け取ったときに処理するフィルタを 設定します。これは
+AddInputFilterディレクティブを含め、他の場所で定義されているフィルタの設定に 追加されます。
+複数のフィルタを指定するときは、データを処理する順番に セミコロンで区切る必要があります。
+|説明:||サーバの応答を処理するフィルタを設定する|
+|構文:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ, .htaccess|
+|上書き:||FileInfo|
+|ステータス:||Core|
+|モジュール:||core|
+SetOutputFilter filter[;filter...]
+SetOutputFilter ディレクティブは サーバの応答をクライアントに送り返される前に処理するフィルタを設定します。 これは
+AddOutputFilterディレクティブを含め、他の場所で定義されているフィルタの設定に 追加されます。
+例えば、以下の設定は
+/www/data/ ディレクトリのすべての ファイルを SSI で処理します。
+<Directory /www/data/>
+SetOutputFilter INCLUDES
+</Directory>
+複数のフィルタを指定するときは、データを処理する順番に セミコロンで区切る必要があります。
+|説明:||各イベントについて、リクエストを失敗させるまでにサーバが 待つ時間を設定|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト|
+|ステータス:||Core|
+|モジュール:||core|
+TimeOut seconds
+TimeOut 60
+TimeOut ディレクティブは、 様々な条件下での I/O 待ち時間を定義します:
+mod_cgi 内で、CGI スクリプトが出力を 返すまでの待ち時間の長さ
+mod_ext_filter 内で、フィルタ処理で出力を 待つ時間の長さ
+mod_proxy 内で、
+ProxyTimeout が設定されていない場合のデフォルトの待ち時間
+|説明:|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+|互換性:||Apache 1.3.34, 2.0.55 以降|
+TRACE メソッドのリクエストに対する応答方法を決める
+TraceEnable [on|off|extended]
+TraceEnable on
+Apache のコア機能(訳注:
+core )と
+mod_proxy両方の
+TRACEの挙動をオーバーライドします。デフォルトの
+TraceEnable onは、リクエストボディを受け入れないような、RFC2616 に準拠した
+TRACEリクエストを受け付けます。
+TraceEnable offと設定すると、コアサーバと
+mod_proxyは
+405(メソッド不許可) エラーをクライアントに返します。
+最後に、テストや調査目的などの限定用途として、仕様に準拠しない
+TraceEnable extended を使って、リクエストボディを 受け付けるように挙動を変更できます。(オリジンサーバとしての) Apache のコアでは、リクエストボディのサイズは 64k (
+Transfer-Encoding: chunkedが使われている場合は chunk ヘッダ用に +8k) に制限されます。 Apache のコアは、ヘッダと全ての chunk ヘッダをレスポンスの ボディとして返却します。 proxy サーバとしては、リクエストボディのサイズは 64k に制限されません。
+|説明:||Undefine the existence of a variable|
+|構文:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+UnDefine parameter-name
+このディレクティブの解説文書は まだ翻訳されていません。英語版をご覧ください。
+Define
+IfDefine
+|説明:||サーバが自分自身の名前とポートを決定する方法を設定する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+UseCanonicalName On|Off|Dns
+UseCanonicalName Off
+多くの状況で Apache は自己参照 URL、すなわち 同じサーバを指す URL、を作成する必要があります。
+UseCanonicalName On の場合は、
+ServerNameディレクティブで指定されている ホスト名とポート番号を使って、その正規名 (自己参照の名前) を生成します。 この名前は、すべての自己参照 URL で使われますし、CGI の
+SERVER_NAMEと
+SERVER_PORTでも使われます。
+UseCanonicalName Off の場合、 クライアントがホスト名とポートを指定したときには、 それらを元に自己参照 URL を作成します (指定がなかったときは 上の定義と同様にして正規名を解決します)。 これらの値は名前ベースの バーチャルホストを実装で使われているのと同じ値で、 同じクライアントで取得できる値になっています。 CGI 変数
+SERVER_NAMEと
+SERVER_PORTもクライアントから与えられた値から作成されます。
+このような挙動が便利な例は、イントラネットのサーバで
+www のような短い名前でユーザがマシンに接続するときです。 ユーザの入力で短いホスト名が使われていて、URL が最後のスラッシュ無しの ディレクトリになっている
+http://www/splatのようなとき、 Apache はリクエストを
+http://www.domain.com/splat/へリダイレクトします。 認証をするように設定していると、この場合 ユーザは 2 回認証をしなければならなくなります (
+wwwに 対して 1 回、
+www.domain.comに対してもう 1 回 -- 詳細は この話題の FAQ を参照してください)。 しかし
+UseCanonicalNameが
+Offになっていると、 Apache は
+http://www/splat/にリダイレクトします。
+三つ目のオプション
+UseCanonicalName DNS は、 大規模な IP ベースのバーチャルホスティングで、
+Host:ヘッダを提供しない古いクライアントを サポートする場合を想定しています。 このオプションでは Apache は、クライアントが接続した IP アドレスに対して DNS の逆引きを行なって、自己参照 URL を作成します。
+CGI が
+SERVER_NAME に関して何らかの前提条件を 仮定しているときには、このオプションの設定によっては動作しなく なるかもしれません。クライアントは実質的にはホスト名として 何でも望みの値を指定することができます。CGI が
+SERVER_NAMEを使って自己参照 URL を作成することしかしない 場合は、どの設定を行なっても大丈夫なはずです。
+UseCanonicalPhysicalPort
+ServerName
+Listen
+|説明:||自分自身の名前とポート番号を解決する方法を設定する|
+|構文:|
+|デフォルト:|
+|コンテキスト:||サーバ設定ファイル, バーチャルホスト, ディレクトリ|
+|ステータス:||Core|
+|モジュール:||core|
+UseCanonicalPhysicalPort On|Off
+UseCanonicalPhysicalPort Off
+さまざまな局面で 自己参照 URL -- それ自体のサーバを参照する URL を作ることになります。
+UseCanonicalPhysicalPort On と設定すると、
+UseCanonicalNameに従って別名を 生成する場合に、実際の物理ポート番号を使って構成するようになります。
+UseCanonicalPhysicalPort Offの場合は、実際の物理ポート番号は 使用せず、設定された情報を元にポート番号を決めます。
+物理ポートが使われる場合の順番は次のようになっています:
+UseCanonicalName On
+ServerName で指定されているポート番号
+UseCanonicalName Off | DNS
+Host: ヘッダをパースして取得されるポート番号
+ServerName で指定されているポート番号
+UseCanonicalPhysicalPort Off で、 物理ポート番号が上記の順序付けから除外されます。
+UseCanonicalName
+ServerName
+Listen
+|説明:||特定のホスト名や IP アドレスのみに適用されるディレクティブを 囲む|
+|構文:|
+|コンテキスト:||サーバ設定ファイル|
+|ステータス:||Core|
+|モジュール:||core|
+<VirtualHost addr[:port] [addr[:port]] ...> ... </VirtualHost>
+<VirtualHost> 及び
+</VirtualHost>は、 特定のバーチャルホストに対してのみ適用されるディレクティブ群を括る ために使われます。 バーチャルホストコンテキストで許可される全てのディレクティブを指定可能です。 サーバが、指定されたバーチャルホストにあるドキュメントへの リクエストを受け付けた場合、
+<VirtualHost>セクションの中にある ディレクティブが適用されます。 Addrは、次のものが利用できます:
+NameVirtualHost * と共に使われる、 すべての IP アドレスにマッチする文字
+*
+_default_
+<VirtualHost 10.1.2.3>
+ServerAdmin webmaster@host.example.com
+DocumentRoot /www/docs/host.example.com
+ServerName host.example.com
+ErrorLog logs/host.example.com-error_log
+TransferLog logs/host.example.com-access_log
+</VirtualHost>
+IPv6 アドレスはオプションのポート番号の指定と区別するために、 角括弧で括って指定する必要があります。次は IPv6 の例です:
+<VirtualHost [2001:db8::a00:20ff:fea7:ccea]>
+ServerAdmin webmaster@host.example.com
+DocumentRoot /www/docs/host.example.com
+ServerName host.example.com
+ErrorLog logs/host.example.com-error_log
+TransferLog logs/host.example.com-access_log
+</VirtualHost>
+各々のバーチャルホストにはそれぞれ違う IP アドレス、ポート番号 もしくはホスト名に対応する必要があり、 1 番目の場合には複数のアドレスで IP パケットを受信できるように サーバマシンを設定しなければなりません。 (もし、マシンが複数のネットワークインターフェースを持たない場合は、 (OSがサポートしていれば)
+ifconfig alias コマンドにより 達成できます)。
+<VirtualHost> は Apache が Listen する IP アドレスには影響を与えません。
+Listenを 使って Apache が正しいアドレスを listen するように設定する必要があります。
+IP ベースのバーチャルホストを使っている場合は、特別な名前
+_default_ を指定することができます。その場合は そのバーチャルホストは他のバーチャルホストで明示的に挙げられていない すべての IP アドレスにマッチします。
+_default_バーチャルホストが無い 場合に IP がバーチャルホストで指定されたものにマッチしないときは、 VirtualHost セクションの外のすべての定義からなる「主」サーバ設定が 使われます。(ただし、
+NameVirtualHostディレクティブにマッチする すべての IP アドレスは「主」サーバ設定も
+_default_バーチャルホストも 使わないことに注意してください。詳しくは ネームベースのバーチャルホスト を 参照してください。)
+:port といった形式で記述することにより、 マッチさせるポートを変更可能です。 この指定をしない場合には、主サーバ設定における 一番最後に
+Portで指定されたポートが デフォルトとなります。
+_default_のときは これを使うことが推奨されています。)
+:* を指定することにより、 アドレス上の全てのポートにマッチします。(
+<VirtualHost> ブロックごとに
+ServerNameを指定すべきです。 もしなければ、メインサーバ設定の
+ServerNameが継承されます
+サーバーを起動した以外のユーザがログファイルが保管されるディレクトリに 書き込み可能なときになぜセキュリティが破られる可能性があるかの詳細は セキュリティに関するコツ を 参照してください。

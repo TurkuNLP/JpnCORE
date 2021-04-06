@@ -1,0 +1,257 @@
+環境
+macOS Sierra 10.12.6
+ターミナル
+Anaconda
+Python 3.6.4
+Anacondaをインストールすればデータサイエンスに必要なライブラリが使えるので、
+ぜひインストールしましょう。
+Anacondaのインストール手順についてはこちら
+→MacにAnacondaをインストールする
+matplotlibとは
+データ可視化ツールのうちのひとつです。
+データ分析を行う際に使います。
+たった数行のPythonコードで簡単な棒グラフ、折れ線グラフ、散布図などを表示することができます。
+matplotlib→https://matplotlib.org/
+参考：matplotlibで日本語対応(文字化け解決),Mac
+当記事で使うデータ
+総務省統計局の人口推計のデータを参照します。
+転載について記載するよう書いてあったので記載しておきます。
+「人口推計」（総務省統計局）（http://www.stat.go.jp/data/jinsui/pdf/201802.pdf）（2018年3月8日に利用）
+class（クラス）の概念を利用してみよう
+前回：【Pythonデータサイエンス入門,matplotlib】統計を利用して日本の人口について見てみよう①
+前回は男性と女性の人口をグラフ化してみました。
+いちおう前回のコードも載せておきます。
+|
+|
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+|
+|
+from matplotlib import pyplot as plt
+# 全体のフォントをRicty Diminishedにする。
+plt.rcParams['font.family'] = 'Ricty Diminished'
+# フォントサイズを設定。「日本の男性の人口」「人口」「年齢」という文字の大きさ
+plt.rcParams['font.size'] = 18
+# 横軸のフォントサイズ。たとえば「0-4歳」など
+plt.rcParams['xtick.labelsize'] = 15
+# 縦軸のフォントサイズ。たとえば「1000」など
+plt.rcParams['ytick.labelsize'] = 15
+# 人口推計でもそうしているように、年齢を5歳刻みで1セットとする。
+# ageというリストで年齢要素を管理する。
+age = ["0-4歳", "5-9歳", "10-14歳", "15-19歳", "20-24歳", "25-29歳", "30-34歳",
+"35-39歳", "40-44歳", "45-49歳", "50-54歳", "55-59歳", "60-64歳",
+"65-69歳", "70-74歳", "75-79歳", "80-84歳", "85-89歳", "90-94歳",
+"95-99歳", "100歳以上"]
+# 男性の日本人人口の値をpopulationというリストに格納。
+# 単位が千人というのはそのまま採用、ageリストの順番と対応する。
+# たとえば0-4歳は2478で、それぞれage[0],population[0]で対応しているということ。
+population = [2478, 2662, 2760, 3033, 3042, 3067, 3512, 3916, 4727, 4705,
+4036, 3742, 3832, 4798, 3586, 2992, 2143, 1166, 413, 70, 9]
+xs = [i + 0.5 for i, _ in enumerate(age)]# x軸はageの要素分だけ区切りあり
+ys = population# y軸の棒の高さはそのまま人口の数（単位は千人）
+plt.bar(xs, ys)# x軸をxs、y軸をysで棒グラフを作る
+plt.title("男性の日本人人口")# グラフのタイトル
+plt.xlabel("年齢")
+plt.ylabel("人口(単位 千人)")
+# x軸のラベルに年齢を棒の中心に配置
+plt.xticks([i + 0.5 for i, _ in enumerate(age)], age)
+plt.show()
+|
+|
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+|
+|
+from matplotlib import pyplot as plt
+# 全体のフォントをRicty Diminishedにする。
+plt.rcParams['font.family'] = 'Ricty Diminished'
+# フォントサイズを設定。「日本の男性の人口」「人口」「年齢」という文字の大きさ
+plt.rcParams['font.size'] = 18
+# 横軸のフォントサイズ。たとえば「0-4歳」など
+plt.rcParams['xtick.labelsize'] = 15
+# 縦軸のフォントサイズ。たとえば「1000」など
+plt.rcParams['ytick.labelsize'] = 15
+# 人口推計でもそうしているように、年齢を5歳刻みで1セットとする。
+# ageというリストで年齢要素を管理する。
+age = ["0-4歳", "5-9歳", "10-14歳", "15-19歳", "20-24歳", "25-29歳", "30-34歳",
+"35-39歳", "40-44歳", "45-49歳", "50-54歳", "55-59歳", "60-64歳",
+"65-69歳", "70-74歳", "75-79歳", "80-84歳", "85-89歳", "90-94歳",
+"95-99歳", "100歳以上"]
+# 女性の日本人人口の値をpopulationというリストに格納。
+# 単位が千人というのはそのまま採用、ageリストの順番と対応する。
+# たとえば0-4歳は2478で、それぞれage[0],population[0]で対応しているということ。
+population = [2364, 2534, 2631, 2871, 2887, 2940, 3389, 3784, 4576, 4574,
+3972, 3748, 3935, 5122, 4075, 3709, 3120, 2210, 1158, 333, 59]
+xs = [i + 0.5 for i, _ in enumerate(age)]# x軸はageの要素分だけ区切りあり
+ys = population# y軸の棒の高さはそのまま人口の数（単位は千人）
+plt.bar(xs, ys)# x軸をxs、y軸をysで棒グラフを作る
+plt.title("女性の日本人人口")# グラフのタイトル
+plt.xlabel("年齢")
+plt.ylabel("人口(単位 千人)")
+# x軸のラベルに年齢を棒の中心に配置
+plt.xticks([i + 0.5 for i, _ in enumerate(age)], age)
+plt.show()
+さて、上記の2つのモジュール（ファイル）で異なっている点は、
+・populationリストの中身
+・plt.titleの中身("男性の日本人人口"か"女性の日本人人口"かの違い)
+だけでした。
+つまり共通部分のほうが多く、
+populationの中身とtitleの中身さえその時々に応じて必要なものを用意してやれば良さそうだなと気づきます。
+加えて、年齢も現在は0-4歳など5歳分ずつで刻んでいますが、10歳刻み(0-9歳など)が欲しくなることもあるかもしれません。
+なので、titleとageとpopulationに関して、抽象的に扱えるような設計にしてみましょう。
+ja_population.pyというモジュールを作ります。
+|
+|
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+|
+|
+from matplotlib import pyplot as plt
+class JapanPopulation(object):
+def __init__(self, graph_title, age, population):
+self.graph_title = graph_title
+self.age = age
+self.population = population
+def show_graph(self):
+# 全体のフォントをRicty Diminishedにする。
+plt.rcParams['font.family'] = 'Ricty Diminished'
+# フォントサイズを設定。「日本の男性の人口」「人口」「年齢」という文字の大きさ
+plt.rcParams['font.size'] = 18
+# 横軸のフォントサイズ。たとえば「0-4歳」など
+plt.rcParams['xtick.labelsize'] = 15
+# 縦軸のフォントサイズ。たとえば「1000」など
+plt.rcParams['ytick.labelsize'] = 15
+xs = [i + 0.5 for i, _ in enumerate(self.age)]# x軸はageの要素分だけ区切りあり
+ys = self.population# y軸の棒の高さはそのまま人口の数（単位は千人）
+plt.bar(xs, ys)# x軸をxs、y軸をysで棒グラフを作る
+plt.title(self.graph_title)# グラフのタイトル
+plt.xlabel("年齢")
+plt.ylabel("人口(単位 千人)")
+# x軸のラベルに年齢を棒の中心に配置
+plt.xticks([i + 0.5 for i, _ in enumerate(self.age)], self.age)
+plt.show()
+このja_poputlation.pyを対話インタープリタから利用してみましょう。
+|
+||
+|
+>>> from ja_population import JapanPopulation
+>>> age = ["0-4歳", "5-9歳", "10-14歳", "15-19歳", "20-24歳", "25-29歳", "30-34歳",
+..."35-39歳", "40-44歳", "45-49歳", "50-54歳", "55-59歳", "60-64歳",
+..."65-69歳", "70-74歳", "75-79歳", "80-84歳", "85-89歳", "90-94歳",
+..."95-99歳", "100歳以上"]
+>>> population = [2478, 2662, 2760, 3033, 3042, 3067, 3512, 3916, 4727, 4705,
+... 4036, 3742, 3832, 4798, 3586, 2992, 2143, 1166, 413, 70, 9]
+>>> mjp = JapanPopulation('男性の日本人人口', age, population)
+>>> mjp.show_graph()
+様子としてはこんな感じです。
+~/Documents/python_codeにja_population.pyを置いています。
+ここでpythonの対話型インタープリタを立ち上げます。
+from ja_population import JapanPopulationでja_population.pyのJapanPopulationクラスを使うと宣言します。pyという部分は書かないことに注意しましょう。
+from モジュール名 import クラス名
+あとはJapanPopulationクラスのインスタンスmjpを作り、show_graph()関数を実行します。
+このように書くと、今後ageやpopulationやタイトルなどが変わっても柔軟に対応できます。
+X軸やY軸のタイトルも抽象化できますので、適宜やってみるといいかもしれません。
+では、また次回もよろしくお願いします。
