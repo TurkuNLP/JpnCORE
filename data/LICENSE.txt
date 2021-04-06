@@ -1,0 +1,5 @@
+JpnCORE (c) Tomoko Ohta, textimi and TurkuNLP group, University of Turku
+
+JpnCORE annotations are licensed under the
+Creative Commons Attribution 4.0 International License,
+see http://creativecommons.org/licenses/by/4.0/
